@@ -1,6 +1,7 @@
 ---
 name: brainstorming
-description: 'You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.'
+description: 'Adaptation of brainstorming skill originally from Jesse Vincent. Some differences: Works in whatever branch, is user invoked, has codex review, spec/plan location is fixed (and different)'
+disable-model-invocation: true
 ---
 
 # Brainstorming Ideas Into Designs
