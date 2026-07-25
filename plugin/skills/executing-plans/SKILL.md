@@ -1,6 +1,7 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: 'Adaptation of executing-plans skill originally from Jesse Vincent. Some differences: Works in whatever branch, is user invoked'
+disable-model-invocation: true
 ---
 
 # Executing Plans
