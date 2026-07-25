@@ -1,6 +1,6 @@
 {
   "name": "honist-v",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Opinionated brainstorming, planning, execution, and test-driven development workflows.",
   "license": "MIT",
   "skills": "./skills/"
