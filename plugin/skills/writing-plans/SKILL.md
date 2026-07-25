@@ -1,6 +1,7 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: 'Adaptation of writing-plans skill originally from Jesse Vincent. Some differences: is user invoked, has codex review, spec/plan location is fixed (and different)'
+disable-model-invocation: true
 ---
 
 # Writing Plans
