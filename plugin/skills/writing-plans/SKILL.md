@@ -149,7 +149,7 @@ If you find issues, fix them inline. No need to re-review — just commit the fi
 
 ## Codex Review
 
-After the self-review passes and changes have been committed, ask codex to review the plan (give it the spec for reference). If codex reviewed an earlier version of the plan ask it to review the changes. Give codex a long timeout (10 minutes).
+After the self-review passes and changes have been committed, ask codex to review the plan (give it the spec for reference). If you are codex, use a subagent while saying the plan was written by someone else. If codex reviewed an earlier version of the plan ask it to review the changes. Give codex a long timeout (10 minutes).
 
 - For feedback that points to a clear issue with a certain fix go ahead and commit the fix inline.
 - Tell the user about feedback that did not indicate a clear issue and is being discarded.
