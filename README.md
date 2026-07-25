@@ -2,8 +2,12 @@
 
 A Claude Code and Codex plugin,
 
-- the parts of Jesse Vincent's Superpowers I use trimmed to how I use them (brainstorming, writing-plans, executing-plans, test-driven-development)
+- imported from [Jesse Vincent's Superpowers](https://github.com/obra/superpowers):
+  - skills: brainstorming, writing-plans, executing-plans, test-driven-development
+  - removed insistance on working in claude branch, added second review by codex, skills are user invoked only
 - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
+- imported from [Matt Pocock's Skills](https://github.com/mattpocock/skills):
+  - skills: handoff
 
 ## Codex
 
