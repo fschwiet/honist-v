@@ -1,7 +1,7 @@
 {
   "name": "honist-v",
   "description": "A personal curation of agentic tools.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "skills": ["./skills-claude/prompt-a-peer", "./skills/engineering", "./skills/productivity"],
   "hooks": "./claude-only-hooks/hooks.json"
 }
