@@ -55,7 +55,16 @@ Ask the user:
 
 Iterate until the user approves the breakdown.
 
-### 5. Publish the tickets to the configured tracker
+### 6. Peer review the draft
+
+Use the **prompt-a-peer** skill to have a peer review the approved tickets. Along with the tickets include a pointer to the ticket-review-prompt.md, the spec (if any), as well as the location of the relevant CONTEXT.md and ADRs.
+
+- For feedback that points to a clear issue with a certain fix, apply the fix inline.
+- Tell the user about feedback that did not indicate a clear issue and is being discarded.
+- For a clear issue without a certain fix, propose 2-3 fixes with trade-offs, lead with your recommendation, and let the user decide.
+- If the tickets are updated substantially after the review, repeat the peer review.
+
+### 6. Publish the tickets to the configured tracker
 
 Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured — the tickets are the same either way, only the shape of the blocking edges changes:
 
