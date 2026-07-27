@@ -1,7 +1,6 @@
 ---
 name: prompt-a-peer-high
 description: Prompts a peer agent with a frontier model.
-disable-model-invocation: true
 ---
 
 Your **peer** is a separate codex agent. Reach the peer by shelling out to the `codex` CLI with the Bash tool.
