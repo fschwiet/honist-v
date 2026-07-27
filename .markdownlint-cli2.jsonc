@@ -1,7 +1,12 @@
 {
   // Files to lint (node_modules excluded via `ignores` below).
   "globs": ["**/*.md"],
-  "ignores": ["node_modules/", "pnpm-lock.yaml"],
+  "ignores": [
+    "node_modules/",
+    "pnpm-lock.yaml",
+    "plugin/skills/engineering",
+    "plugin/skills/productivity",
+  ],
 
   "config": {
     "default": true,
