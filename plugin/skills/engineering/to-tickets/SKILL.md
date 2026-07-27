@@ -57,7 +57,7 @@ Iterate until the user approves the breakdown.
 
 ### 6. Peer review the draft
 
-Use the **prompt-a-peer** skill to have a peer review the approved tickets. Along with the tickets include a pointer to the ticket-review-prompt.md, the spec (if any), as well as the location of the relevant CONTEXT.md and ADRs.
+Use the **prompt-a-peer-high** skill to have a peer review the approved tickets. Along with the tickets include a pointer to the ticket-review-prompt.md, the spec (if any), as well as the location of the relevant CONTEXT.md and ADRs.
 
 - For feedback that points to a clear issue with a certain fix, apply the fix inline.
 - Tell the user about feedback that did not indicate a clear issue and is being discarded.

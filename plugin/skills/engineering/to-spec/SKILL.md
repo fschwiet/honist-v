@@ -18,8 +18,7 @@ Check with the user that these seams match their expectations.
 
 3. Write the spec draft using the template below.
 
-4. Peer review the draft: use the **prompt-a-peer** skill to have a peer review it. Provide the peer with the draft itself along with the spec template and the location of the relevant CONTEXT.md and ADRs. Ask it for a broad quality pass: clarity and completeness. Could any requirements be interpreted in two different aways? Are there any hidden assumptions to surface?
-
+4. Peer review the draft: use the **prompt-a-peer-high** skill to have a peer review it. Provide the peer with the draft itself along with the spec template and the location of the relevant CONTEXT.md and ADRs. Ask it for a broad quality pass: clarity and completeness. Could any requirements be interpreted in two different aways? Are there any hidden assumptions to surface?
    - For feedback that points to a clear issue with a certain fix, apply the fix inline.
    - Tell the user about feedback that did not indicate a clear issue and is being discarded.
    - For a clear issue without a certain fix, propose 2-3 fixes with trade-offs, lead with your recommendation, and let the user decide.

@@ -8,7 +8,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 - **Standards** — does the code conform to this repo's documented coding standards?
 - **Spec** — does the code faithfully implement the originating issue / PRD / spec?
 
-Both axes run through the **prompt-a-peer** skill, one axis at a time, so neither pollutes your context, then this skill aggregates their findings.
+Both axes run through the **prompt-a-peer-medium** skill, one axis at a time, so neither pollutes your context, then this skill aggregates their findings.
 
 The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
 
@@ -57,7 +57,7 @@ Each smell reads _what it is_ → _how to fix_; match it against the diff:
 
 ### 4. Prompt a peer for each axis
 
-Invoke the **prompt-a-peer** skill twice, Standards then Spec — each call is a fresh peer with no memory of the other, so neither axis leaks into the other's findings. Present each prompt as work authored by someone else.
+Invoke the **prompt-a-peer-medium** skill twice, Standards then Spec — each call is a fresh peer with no memory of the other, so neither axis leaks into the other's findings. Present each prompt as work authored by someone else.
 
 **Standards peer prompt** — include:
 
