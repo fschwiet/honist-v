@@ -134,7 +134,14 @@ run_codex_test() {
   local prompt
   prompt="$(prompt_for_skill_file "$skill_path")"
 
-  codex exec --json --output-schema "$SCHEMA_FILE" --sandbox workspace-write "$prompt" \
+  codex \
+    --model gpt-5.6-luna \
+    exec \
+    --skip-git-repo-check \
+    --ignore-user-config \
+    --sandbox workspace-write \
+    --json --output-schema "$SCHEMA_FILE" \
+     "$prompt" \
     < /dev/null > "$transcript" 2>&1
 
   report_result "$name" "$expected" "$(extract_codex_model "$transcript")"
