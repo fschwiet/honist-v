@@ -2,10 +2,15 @@
   // Files to lint (node_modules excluded via `ignores` below).
   "globs": ["**/*.md"],
   "ignores": ["node_modules/", "pnpm-lock.yaml"],
+
   "config": {
     "default": true,
     // Prettier owns wrapping (proseWrap: never), so don't enforce line length.
     "MD013": false,
     "MD033": false, // in-line HTML allowed because agents like inline html
+    "ignore_front_matter": true, // avoids require a header at the start of every skill
+    "MD041": {
+      "front_matter_title": "^\\s*name\\s*[:=]",
+    },
   },
 }
