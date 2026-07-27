@@ -70,7 +70,7 @@ FAIL_COUNT=0
 
 prompt_for_skill_name() {
   local skill="$1"
-  echo "Use the ${skill} skill to ask your peer what model it is running as. Reply with nothing but JSON matching the schema, using the exact model identifier the peer reported."
+  echo "Use the ${skill} skill to ask your peer to respond with 'Hello, World'."
 }
 
 prompt_for_skill_file() {
@@ -113,7 +113,6 @@ run_claude_test() {
     --output-format stream-json --verbose \
     --plugin-dir "$PLUGIN_DIR" \
     --permission-mode bypassPermissions \
-    --json-schema "$(cat "$SCHEMA_FILE")" \
     > "$transcript" 2>&1
 
   # Verify from intermediate transcript evidence (skill base dir + codex banner
