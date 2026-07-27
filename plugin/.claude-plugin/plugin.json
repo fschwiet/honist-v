@@ -1,6 +1,6 @@
 {
   "name": "honist-v",
   "description": "A personal curation of agentic tools.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "skills": ["./skills-claude/prompt-a-peer"]
 }
