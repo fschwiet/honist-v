@@ -1,6 +1,6 @@
 {
   "name": "honist-v",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A personal curation of agentic tools.",
   "license": "MIT",
   "skills": ["./skills/", "./skills-codex/"]
