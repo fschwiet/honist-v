@@ -8,10 +8,23 @@ A Claude Code and Codex plugin,
 - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
 - imported from [Matt Pocock's Skills](https://github.com/mattpocock/skills):
   - skills: handoff
+- original skills:
+  - `prompt-a-peer`: an agent-dependent skill that lets other skills offload a prompt to a peer agent (see below)
+
+## Prompt a peer
+
+`prompt-a-peer` is one skill name backed by two implementations, so any skill that says "prompt a peer" routes to whatever fits the running agent:
+
+- On **Claude** (`skills-claude/prompt-a-peer`) it shells out to the `codex` CLI, moving token cost to a separate agent.
+- On **Codex** (`skills-codex/prompt-a-peer`) it spawns a codex subagent, keeping the work off the main context window.
+
+Unlike the other skills, both are model-invoked (no `disable-model-invocation`) so calling skills — for example the plan/spec/code review flows — can reach them.
+
+The shared skills live in `skills/` and are loaded by both agents. Each variant lives outside `skills/` and is wired per agent in its manifest: Claude auto-discovers `skills/` and the `.claude-plugin` manifest supplements it with `skills-claude/prompt-a-peer`; the `.codex-plugin` manifest lists both `skills/` and `skills-codex/` (Codex loads only the paths its manifest names).
 
 ## Codex
 
-The Codex plugin exposes the same four skills. The Claude-specific session-start hook remains Claude-only and is not registered by the Codex manifest.
+The Codex plugin exposes the same shared skills. The Claude-specific session-start hook remains Claude-only and is not registered by the Codex manifest.
 
 Add this repository as a local marketplace, then install `honist-v`:
 
