@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: 'Adaptation of brainstorming skill originally from Jesse Vincent. Some differences: Works in whatever branch, is user invoked, has codex review, spec/plan location is fixed (and different)'
+description: 'Adaptation of brainstorming skill originally from Jesse Vincent. Some differences: Works in whatever branch, is user invoked, has peer review, spec/plan location is fixed (and different)'
 disable-model-invocation: true
 ---
 
@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
 5. **Write design doc** — save to `docs/honist-v/specs/YYYY-MM-DD-<topic>-design.md` and commit
 6. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-7. **Codex review** — ask codex to review the committed spec, fix clear issues
+7. **Peer review** — use prompt-a-peer to review the committed spec, fix clear issues
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
@@ -43,7 +43,7 @@ digraph brainstorming {
     "User approves design?" [shape=diamond];
     "Write design doc" [shape=box];
     "Spec self-review\n(fix + commit inline)" [shape=box];
-    "Codex reviews spec" [shape=box];
+    "Peer reviews spec" [shape=box];
     "Clear issues?" [shape=diamond];
     "Certain fix?" [shape=diamond];
     "Propose 2-3 fixes" [shape=box];
@@ -58,8 +58,8 @@ digraph brainstorming {
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix + commit inline)";
-    "Spec self-review\n(fix + commit inline)" -> "Codex reviews spec";
-    "Codex reviews spec" -> "Clear issues?";
+    "Spec self-review\n(fix + commit inline)" -> "Peer reviews spec";
+    "Peer reviews spec" -> "Clear issues?";
     "Clear issues?" -> "User reviews spec?" [label="no\n(report discarded feedback)"];
     "Clear issues?" -> "Certain fix?" [label="yes"];
     "Certain fix?" -> "Substantial changes?" [label="yes, fix + commit inline"];
@@ -131,7 +131,7 @@ digraph brainstorming {
 
 Fix any issues inline. No need to re-review — just commit the fixes and move on.
 
-**Codex Review:** After the spec self-review passes and changes have been committed, ask codex to review the spec. If you are codex, use a subagent while saying the spec was written by someone else. If codex reviewed an earlier version of the spec ask it to review the changes. Give codex a long timeout (10 minutes).
+**Peer Review:** After the spec self-review passes and changes have been committed, use the **prompt-a-peer** skill to have a peer review the committed spec. If a peer reviewed an earlier version of the spec, ask it to review the changes since.
 
 - For feedback that points to a clear issue with a certain fix go ahead and commit the fix inline.
 - Tell the user about feedback that did not indicate a clear issue and is being discarded.

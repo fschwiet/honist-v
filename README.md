@@ -18,7 +18,7 @@ A Claude Code and Codex plugin,
 - On **Claude** (`skills-claude/prompt-a-peer`) it shells out to the `codex` CLI, moving token cost to a separate agent.
 - On **Codex** (`skills-codex/prompt-a-peer`) it spawns a codex subagent, keeping the work off the main context window.
 
-Unlike the other skills, both are model-invoked (no `disable-model-invocation`) so calling skills — for example the plan/spec/code review flows — can reach them.
+Like the other skills, both set `disable-model-invocation: true` — they are invoked by name, not auto-fired by the model. The plan/spec review flows reach them by naming the skill.
 
 The shared skills live in `skills/` and are loaded by both agents. Each variant lives outside `skills/` and is wired per agent in its manifest: Claude auto-discovers `skills/` and the `.claude-plugin` manifest supplements it with `skills-claude/prompt-a-peer`; the `.codex-plugin` manifest lists both `skills/` and `skills-codex/` (Codex loads only the paths its manifest names).
 
