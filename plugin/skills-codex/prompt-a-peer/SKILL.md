@@ -1,18 +1,16 @@
 ---
 name: prompt-a-peer
-description: Prompt your peer — spawn a codex subagent to run a task or review in a fresh context, keeping the work off your main context window. Use when a skill needs a second-agent pass (plan, spec, or code review), or the user asks to hand a task to a peer.
+description: Prompt your peer — spawn a codex subagent to run a prompt in a fresh context, keeping the work off your main context window. Use when a skill wants to delegate a prompt to a second agent, or the user asks to hand a task to a peer.
 ---
 
 # Prompt a peer
 
-Your **peer** is a fresh codex subagent that runs the task in its own context. Delegating to it keeps the work off your main context window and gives an independent pass.
+Your **peer** is a fresh codex subagent that runs the prompt in its own context. Delegating to it keeps the work off your main context window and gives an independent pass.
 
-Spawn a subagent with the prompt. Present the prompt as work authored by someone else, so the peer reviews it without deference.
+Spawn a subagent with the prompt. Present the prompt as work authored by someone else, so the peer responds without deference. Give it a generous budget — it runs a full agent loop.
 
-- For a code, plan, or spec review, dispatch the `$review-agent` skill — it is built for this and returns severity-ranked findings.
-- For any other task, spawn a general subagent with the prompt.
-- Give the peer a generous budget — it runs a full agent loop.
+When the prompt is a self-contained code, plan, or spec review, the built-in `$review-agent` skill is a ready-made peer that returns severity-ranked findings; otherwise spawn a general subagent.
 
-## After the peer returns
+## Returning the response
 
-Relay the actionable content — findings, answers, decisions — to the user. Do not replay the whole subagent transcript. For review feedback, follow the calling skill's own rules for folding in fixes and surfacing what was discarded.
+The subagent's response is the result. The skill that invoked prompt-a-peer decides how to use it.
