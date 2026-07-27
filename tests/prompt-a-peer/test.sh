@@ -26,6 +26,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/assertions.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PLUGIN_DIR="$REPO_ROOT/plugin"
 SCHEMA_FILE="$SCRIPT_DIR/schema.json"
@@ -87,13 +88,6 @@ report_result() {
   fi
 }
 
-# Claude's stream-json output ends with a single {"type":"result",...} event
-# carrying the schema-validated reply in structured_output.
-extract_claude_model() {
-  local transcript="$1"
-  tail -n 1 "$transcript" | jq -r '.structured_output.model // empty' 2>/dev/null
-}
-
 # Codex's --json output is a JSONL event stream; the peer's reply is the last
 # item.completed event whose item.type is agent_message.
 extract_codex_model() {
@@ -122,7 +116,15 @@ run_claude_test() {
     --json-schema "$(cat "$SCHEMA_FILE")" \
     > "$transcript" 2>&1
 
-  report_result "$name" "$expected" "$(extract_claude_model "$transcript")"
+  # Verify from intermediate transcript evidence (skill base dir + codex banner
+  # model), not the peer's final answer -- the peer routinely misreports its own
+  # model. See assertions.sh for the rationale.
+  if verify_claude_success "$transcript" "$REPO_ROOT" "plugin/skills-claude/$skill" "$expected"; then
+    echo "PASS $name"
+  else
+    echo "FAIL $name (see .test-run/${name}.jsonl)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
 }
 
 run_codex_test() {
