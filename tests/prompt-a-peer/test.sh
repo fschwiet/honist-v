@@ -113,6 +113,9 @@ run_claude_test() {
   prompt="$(prompt_for_skill_name "$skill")"
 
   claude -p "$prompt" \
+    --allowedTools "" \
+    --effort low \
+    --model haiku \
     --output-format stream-json --verbose \
     --plugin-dir "$PLUGIN_DIR" \
     --permission-mode bypassPermissions \
