@@ -1,10 +1,8 @@
 ---
-name: prompt-a-peer
-description: Prompts a peer agent
+name: prompt-a-peer-high
+description: Prompts a peer agent with a frontier model.
 disable-model-invocation: true
 ---
-
-# Prompt a peer
 
 Your **peer** is a separate codex agent. Reach the peer by shelling out to the `codex` CLI with the Bash tool.
 
@@ -13,7 +11,7 @@ Your **peer** is a separate codex agent. Reach the peer by shelling out to the `
 Write the prompt to a temp file (OS temp dir, not the workspace), then:
 
 ```bash
-codex exec --sandbox workspace-write "$(cat "$promptfile")" --output-last-message "$resultfile" < /dev/null
+codex exec --model "gpt-5.6-sol" --sandbox workspace-write "$(cat "$promptfile")" --output-last-message "$resultfile" < /dev/null
 ```
 
 - **`< /dev/null` is mandatory.** Without it codex blocks on stdin and the call hangs until timeout. Append it to every invocation.
