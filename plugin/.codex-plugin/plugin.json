@@ -3,5 +3,5 @@
   "version": "0.0.7",
   "description": "A personal curation of agentic tools.",
   "license": "MIT",
-  "skills": ["./skills/", "./skills-codex/"]
+  "skills": ["./skills/", "./skills-codex/", "./skills/engineering", "./skills/productivity"]
 }
