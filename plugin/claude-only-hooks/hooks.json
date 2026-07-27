@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claude-only-hooks/session-start.mjs\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude-only-hooks/reject-powershell-heredoc.sh\"",
+            "statusMessage": "Checking for PowerShell here-string in Bash"
+          }
+        ]
+      }
+    ]
+  }
+}
