@@ -4,12 +4,13 @@
 
 **Architecture:** A dependency-free ESM module will own explicit manifest declarations, schema-specific extraction, filesystem inspection, and diagnostic formatting. A thin CLI will run that module from the repository root; Node's built-in test runner will exercise pure extraction, injected filesystem failures, and process exit behavior.
 
-**Tech Stack:** Node.js 18 or newer, ECMAScript modules, `node:fs/promises`, `node:test`, pnpm 11
+**Tech Stack:** Node.js 20.19.0 or newer, ECMAScript modules, `node:fs/promises`, `node:test`, pnpm 11
 
 ## Global Constraints
 
 - Support only the path-bearing fields currently used by this repository.
 - Add no runtime or development dependency.
+- Align `engines.node` with ESLint 10's existing minimum: `>=20.19.0`.
 - Preserve the existing resolution bases: plugin references resolve from `plugin/`; marketplace references resolve from the repository root.
 - Enforce `skills` and marketplace sources as directories and `hooks` as a file.
 - Collect all manifest and target failures before returning.
@@ -310,6 +311,12 @@ const invalidCases = [
     '$.plugins[0].source',
   ],
   [
+    'Claude null source',
+    'claude-marketplace',
+    { plugins: [{ source: null }] },
+    '$.plugins[0].source',
+  ],
+  [
     'Codex source container',
     'codex-marketplace',
     { plugins: [{ source: null }] },
@@ -322,9 +329,21 @@ const invalidCases = [
     '$.plugins[0].source.source',
   ],
   [
+    'Codex null discriminator',
+    'codex-marketplace',
+    { plugins: [{ source: { source: null, path: './plugin' } }] },
+    '$.plugins[0].source.source',
+  ],
+  [
     'Codex local path',
     'codex-marketplace',
     { plugins: [{ source: { source: 'local' } }] },
+    '$.plugins[0].source.path',
+  ],
+  [
+    'Codex null local path',
+    'codex-marketplace',
+    { plugins: [{ source: { source: 'local', path: null } }] },
     '$.plugins[0].source.path',
   ],
 ];
@@ -359,7 +378,7 @@ Run:
 node --test tests/manifest-references.test.mjs
 ```
 
-Expected: PASS, 13 tests with the exact `$`-based field paths asserted above.
+Expected: PASS, 16 tests with the exact `$`-based field paths asserted above.
 
 - [ ] **Step 7: Commit the extraction slice**
 
@@ -455,6 +474,26 @@ test('reports parse failures at the document field and continues', async (t) => 
   assert.match(diagnostics[0].message, /invalid JSON/);
   assert.equal(diagnostics.filter(({ message }) => message === 'manifest is missing').length, 3);
 });
+
+test('inspects valid references after an extraction failure', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeJson(root, 'plugin/.claude-plugin/plugin.json', {
+    skills: [null, './missing-skill'],
+  });
+  await writeJson(root, 'plugin/.codex-plugin/plugin.json', {});
+  await writeJson(root, '.claude-plugin/marketplace.json', {});
+  await writeJson(root, '.agents/plugins/marketplace.json', {});
+
+  const diagnostics = await verifyRepository(root);
+
+  assert.equal(diagnostics.length, 2);
+  assert.deepEqual(
+    diagnostics.map(({ field }) => field),
+    ['$.skills[0]', '$.skills[1]'],
+  );
+  assert.match(diagnostics[1].message, /missing/);
+});
 ```
 
 - [ ] **Step 2: Run the verification tests to verify they fail**
@@ -462,7 +501,7 @@ test('reports parse failures at the document field and continues', async (t) => 
 Run:
 
 ```powershell
-node --test --test-name-pattern="aggregates|parse failures" tests/manifest-references.test.mjs
+node --test --test-name-pattern="aggregates|parse failures|extraction failure" tests/manifest-references.test.mjs
 ```
 
 Expected: FAIL because `verifyRepository` and `formatDiagnostic` are not exported.
@@ -597,7 +636,7 @@ Run:
 node --test --test-name-pattern="aggregates|parse failures" tests/manifest-references.test.mjs
 ```
 
-Expected: PASS, 2 selected tests.
+Expected: PASS, 3 selected tests.
 
 - [ ] **Step 5: Write failing injected-filesystem tests for unreadable operations**
 
@@ -666,7 +705,7 @@ Run:
 node --test tests/manifest-references.test.mjs
 ```
 
-Expected: PASS, 17 tests. Diagnostics must remain in manifest declaration order, followed by reference inspection order.
+Expected: PASS, 21 tests. Diagnostics must remain in manifest declaration order, followed by reference inspection order.
 
 - [ ] **Step 7: Commit the verification slice**
 
@@ -825,7 +864,7 @@ Run:
 node --test tests/manifest-references.test.mjs
 ```
 
-Expected: PASS, 19 tests.
+Expected: PASS, 23 tests.
 
 - [ ] **Step 5: Run lint and formatting checks**
 
@@ -861,7 +900,15 @@ git commit -m "Add manifest reference verifier CLI"
 - Consumes: `scripts/verify-manifest-references.mjs` and `tests/manifest-references.test.mjs`.
 - Produces: `pnpm verify:manifest-references`, `pnpm test:manifest-references`, and an expanded `pnpm verify`.
 
-- [ ] **Step 1: Add package scripts and make the full pipeline executable**
+- [ ] **Step 1: Align the Node engine and add the package scripts**
+
+Change the `engines` object in `package.json` to match ESLint 10's existing runtime requirement:
+
+```json
+"engines": {
+  "node": ">=20.19.0"
+}
+```
 
 Replace the `scripts` object in `package.json` with:
 
@@ -886,7 +933,7 @@ pnpm test:manifest-references
 pnpm verify:manifest-references
 ```
 
-Expected: the test script reports 19 passing tests; the verifier exits 0 and reports `Verified 12 manifest references.` based on the four current manifests.
+Expected: the test script reports 23 passing tests; the verifier exits 0 and reports `Verified 12 manifest references.` based on the four current manifests.
 
 - [ ] **Step 3: Update the README verification section**
 
@@ -924,7 +971,7 @@ Run:
 pnpm verify
 ```
 
-Expected: format check, ESLint, Markdown lint, 19 Node tests, and the real-manifest check all pass.
+Expected: format check, ESLint, Markdown lint, 23 Node tests, and the real-manifest check all pass.
 
 - [ ] **Step 5: Inspect the final diff for unintended generated files**
 
