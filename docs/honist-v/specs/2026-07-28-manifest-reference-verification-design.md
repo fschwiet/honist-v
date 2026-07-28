@@ -31,7 +31,8 @@ extending the verifier and will fail until then.
 
 Missing optional path-bearing properties are skipped. A property that is
 present with a `null` value is present, not missing, and fails when the expected
-type is different.
+type is different. The exception is `path` inside a Codex source explicitly
+discriminated as `local`: that property is conditionally required.
 
 The manifest-specific extractors will apply these rules:
 
@@ -42,9 +43,9 @@ The manifest-specific extractors will apply these rules:
 | Plugin manifest `hooks` | When present, must be a string and becomes a file reference. |
 | Marketplace `plugins` | When present, must be an array. |
 | Marketplace `plugins[]` | Every element must be an object. |
-| Claude marketplace `plugins[].source` | When present, must be a string and becomes a directory reference. |
+| Claude marketplace `plugins[].source` | When present, must be a string beginning with `./`, the current local-source representation, and becomes a directory reference. Other strings are unsupported source forms. |
 | Codex marketplace `plugins[].source` | When present, must be an object whose `source` discriminator is the string `local`; other source forms are unsupported. |
-| Codex marketplace local `plugins[].source.path` | Must be a string and becomes a directory reference. |
+| Codex marketplace local `plugins[].source.path` | Conditionally required when the discriminator is `local`; must be a string and becomes a directory reference. |
 
 These rules deliberately reject unimplemented remote source forms rather than
 silently accepting a manifest that the reference verifier did not check.
@@ -97,7 +98,7 @@ The following conditions are verification failures:
 - An expected manifest cannot be read.
 - An expected manifest contains invalid JSON.
 - A supported field is present but has the wrong JSON type.
-- A local source uses an unsupported shape.
+- A marketplace source uses an unsupported form or discriminator.
 - A referenced target does not exist.
 - A referenced target exists but is not the expected file or directory kind.
 - A referenced target cannot be inspected.
@@ -116,6 +117,12 @@ All expected manifests and extracted references will be checked even after
 read, parse, extraction, or filesystem failures. All failures will be reported
 in one run, followed by a count summary. Unexpected programmer errors may still
 terminate the process.
+
+Each failed read or inspection operation will produce exactly one diagnostic.
+For a missing-path error, including a path made unreachable by a missing parent
+directory, the diagnostic will report the manifest or target as missing. Other
+filesystem errors will report that the manifest cannot be read or the target
+cannot be inspected.
 
 ## Testing
 
@@ -147,7 +154,8 @@ named package script alongside the existing verification scripts.
 ## Out of Scope
 
 - Full validation against Claude or Codex manifest schemas.
-- Requiring optional path-bearing fields to be present.
+- Requiring optional `skills`, `hooks`, `plugins`, or `source` properties to be
+  present.
 - Discovering additional path-bearing fields automatically.
 - Supporting or validating remote marketplace sources.
 - Enforcing that referenced paths remain within the repository.
