@@ -5,11 +5,13 @@
   "type": "module",
   "private": true,
   "engines": {
-    "node": ">=18"
+    "node": "^20.19.0 || ^22.13.0 || >=24"
   },
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "verify": "pnpm format:check && pnpm lint && pnpm lint:md",
+    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm verify:manifest-references",
+    "verify:manifest-references": "node scripts/verify-manifest-references.mjs",
+    "test:manifest-references": "node --test tests/manifest-references.test.mjs",
     "lint": "eslint .",
     "lint:md": "markdownlint-cli2",
     "format": "prettier --write .",

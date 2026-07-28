@@ -47,20 +47,22 @@ codex plugin add honist-v@honist-v
 
 ## Verification
 
-The verification pipeline is linting only:
+The verification pipeline checks formatting, JavaScript and Markdown lint, manifest-reference behavior, and every file or directory referenced by the current plugin and marketplace manifests:
 
 ```bash
 pnpm install
-pnpm verify          # runs format:check + lint + lint:md
+pnpm verify
 ```
 
 Other useful scripts:
 
-| Script              | Description                      |
-| ------------------- | -------------------------------- |
-| `pnpm lint`         | Run ESLint                       |
-| `pnpm lint:md`      | Lint Markdown with markdownlint  |
-| `pnpm format`       | Format all files with Prettier   |
-| `pnpm format:check` | Check formatting without writing |
+| Script                            | Description                             |
+| --------------------------------- | --------------------------------------- |
+| `pnpm verify:manifest-references` | Check references in committed manifests |
+| `pnpm test:manifest-references`   | Test manifest-reference verification    |
+| `pnpm lint`                       | Run ESLint                              |
+| `pnpm lint:md`                    | Lint Markdown with markdownlint         |
+| `pnpm format`                     | Format all files with Prettier          |
+| `pnpm format:check`               | Check formatting without writing        |
 
 CI runs `pnpm verify` on every push and pull request (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
