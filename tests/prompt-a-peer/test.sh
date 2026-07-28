@@ -134,6 +134,9 @@ run_codex_test() {
   local prompt
   prompt="$(prompt_for_skill_file "$skill_path")"
 
+  # droppping "--output-schema "$SCHEMA_FILE"" will cause intermediate events to be reported,
+  # but they still don't report the specific model.
+
   codex \
     --model gpt-5.6-luna \
     exec \
