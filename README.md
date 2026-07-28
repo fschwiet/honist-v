@@ -24,7 +24,7 @@ The shared skills live in `skills/` and are loaded by both agents. Each variant 
 
 ### Prompt a peer medium / high
 
-`prompt-a-peer-medium` and `prompt-a-peer-high` are both skills backed by separate implementations for claude and codex, so any skill that says "prompt a peer" routes to whatever fits the running agent. One claude, they shell out to codex. On codex, they use a subagent. This lets us divert cost from claude to codex, and is used when we want a fresh context window.
+`prompt-a-peer-medium` and `prompt-a-peer-high` are both skills backed by separate implementations for claude and codex, so any skill using them routes to whatever fits the running agent. On claude, they shell out to codex. On codex, they use a subagent. This lets us divert cost from claude to codex, and is used when we want a fresh context window.
 
 Like the other skills, both set `disable-model-invocation: true` — they are invoked by name, not auto-fired by the model. The plan/spec review flows reach them by naming the skill.
 
