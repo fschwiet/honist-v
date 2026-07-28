@@ -70,7 +70,7 @@ The following conditions are verification failures:
 
 - An expected manifest is missing.
 - An expected manifest contains invalid JSON.
-- A supported field has the wrong JSON type.
+- A supported field is present but has the wrong JSON type.
 - A referenced target does not exist.
 - A referenced target exists but is not the expected file or directory kind.
 
@@ -113,6 +113,7 @@ named package script alongside the existing verification scripts.
 ## Out of Scope
 
 - Full validation against Claude or Codex manifest schemas.
+- Requiring optional path-bearing fields to be present.
 - Discovering additional path-bearing fields automatically.
 - Validating remote marketplace sources.
 - Enforcing that referenced paths remain within the repository.
