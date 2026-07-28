@@ -1,7 +1,31 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import test from 'node:test';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
-import { extractReferences } from '../scripts/manifest-references.mjs';
+import {
+  extractReferences,
+  formatDiagnostic,
+  verifyRepository,
+} from '../scripts/manifest-references.mjs';
+
+async function makeRepository() {
+  const root = await mkdtemp(path.join(tmpdir(), 'honist-v-manifests-'));
+  await mkdir(path.join(root, 'plugin/.claude-plugin'), {
+    recursive: true,
+  });
+  await mkdir(path.join(root, 'plugin/.codex-plugin'), {
+    recursive: true,
+  });
+  await mkdir(path.join(root, '.claude-plugin'), { recursive: true });
+  await mkdir(path.join(root, '.agents/plugins'), { recursive: true });
+  return root;
+}
+
+async function writeJson(root, relativePath, value) {
+  await writeFile(path.join(root, relativePath), `${JSON.stringify(value, null, 2)}\n`);
+}
 
 test('extracts plugin skills and hooks with their expected kinds', () => {
   const result = extractReferences(
@@ -141,4 +165,121 @@ test('skips absent optional path-bearing properties', () => {
       diagnostics: [],
     });
   }
+});
+
+test('aggregates missing and wrong-kind targets across manifests', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(path.join(root, 'plugin/skills'), { recursive: true });
+  await writeFile(path.join(root, 'plugin/not-a-directory'), 'file');
+  await mkdir(path.join(root, 'plugin/not-a-file'), { recursive: true });
+  await writeJson(root, 'plugin/.claude-plugin/plugin.json', {
+    skills: ['./skills', './missing-skill'],
+    hooks: './not-a-file',
+  });
+  await writeJson(root, 'plugin/.codex-plugin/plugin.json', {
+    skills: ['./not-a-directory'],
+  });
+  await writeJson(root, '.claude-plugin/marketplace.json', {
+    plugins: [{ source: './missing-plugin' }],
+  });
+  await writeJson(root, '.agents/plugins/marketplace.json', {
+    plugins: [{ source: { source: 'local', path: './plugin' } }],
+  });
+
+  const diagnostics = await verifyRepository(root);
+
+  assert.equal(diagnostics.length, 4);
+  assert.deepEqual(
+    diagnostics.map(({ field }) => field),
+    ['$.skills[1]', '$.hooks', '$.skills[0]', '$.plugins[0].source'],
+  );
+  assert.match(formatDiagnostic(diagnostics[0]), /missing-skill/);
+  assert.match(formatDiagnostic(diagnostics[0]), /expected directory/);
+});
+
+test('reports parse failures at the document field and continues', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'plugin/.claude-plugin/plugin.json'), '{invalid');
+
+  const diagnostics = await verifyRepository(root);
+
+  assert.equal(diagnostics.length, 4);
+  assert.equal(diagnostics[0].field, '$');
+  assert.match(diagnostics[0].message, /invalid JSON/);
+  assert.equal(diagnostics.filter(({ message }) => message === 'manifest is missing').length, 3);
+});
+
+test('inspects valid references after an extraction failure', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeJson(root, 'plugin/.claude-plugin/plugin.json', {
+    skills: [null, './missing-skill'],
+  });
+  await writeJson(root, 'plugin/.codex-plugin/plugin.json', {});
+  await writeJson(root, '.claude-plugin/marketplace.json', {});
+  await writeJson(root, '.agents/plugins/marketplace.json', {});
+
+  const diagnostics = await verifyRepository(root);
+
+  assert.equal(diagnostics.length, 2);
+  assert.deepEqual(
+    diagnostics.map(({ field }) => field),
+    ['$.skills[0]', '$.skills[1]'],
+  );
+  assert.match(diagnostics[1].message, /missing/);
+});
+
+test('collects non-missing read and stat failures once each', async () => {
+  const documents = new Map([
+    [
+      path.normalize('plugin/.claude-plugin/plugin.json'),
+      JSON.stringify({ skills: ['./blocked-target'] }),
+    ],
+    [path.normalize('plugin/.codex-plugin/plugin.json'), JSON.stringify({})],
+    [path.normalize('.claude-plugin/marketplace.json'), JSON.stringify({})],
+  ]);
+  const denied = Object.assign(new Error('access denied'), {
+    code: 'EACCES',
+  });
+  const filesystem = {
+    async readFile(filename) {
+      const relative = path.normalize(path.relative('repo', filename));
+      if (relative === path.normalize('.agents/plugins/marketplace.json')) {
+        throw denied;
+      }
+      return documents.get(relative);
+    },
+    async stat() {
+      throw denied;
+    },
+  };
+
+  const diagnostics = await verifyRepository('repo', filesystem);
+
+  assert.equal(diagnostics.length, 2);
+  assert.match(diagnostics[0].message, /cannot be read/);
+  assert.match(diagnostics[1].message, /cannot be inspected/);
+});
+
+test('classifies ENOTDIR as one missing-target diagnostic', async () => {
+  const filesystem = {
+    async readFile(filename) {
+      if (filename.endsWith('plugin.json')) {
+        return JSON.stringify({ skills: ['./missing/child'] });
+      }
+      return JSON.stringify({});
+    },
+    async stat() {
+      throw Object.assign(new Error('not a directory'), {
+        code: 'ENOTDIR',
+      });
+    },
+  };
+
+  const diagnostics = await verifyRepository('repo', filesystem);
+
+  assert.equal(diagnostics.length, 2);
+  assert.ok(diagnostics.every(({ message }) => message === 'referenced target is missing'));
 });
