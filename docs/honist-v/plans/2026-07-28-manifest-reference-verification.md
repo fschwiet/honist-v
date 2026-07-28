@@ -4,13 +4,13 @@
 
 **Architecture:** A dependency-free ESM module will own explicit manifest declarations, schema-specific extraction, filesystem inspection, and diagnostic formatting. A thin CLI will run that module from the repository root; Node's built-in test runner will exercise pure extraction, injected filesystem failures, and process exit behavior.
 
-**Tech Stack:** Node.js 20.19.0 or newer, ECMAScript modules, `node:fs/promises`, `node:test`, pnpm 11
+**Tech Stack:** Node.js `^20.19.0 || ^22.13.0 || >=24`, ECMAScript modules, `node:fs/promises`, `node:test`, pnpm 11
 
 ## Global Constraints
 
 - Support only the path-bearing fields currently used by this repository.
 - Add no runtime or development dependency.
-- Align `engines.node` with ESLint 10's existing minimum: `>=20.19.0`.
+- Align `engines.node` with ESLint 10's supported range: `^20.19.0 || ^22.13.0 || >=24`.
 - Preserve the existing resolution bases: plugin references resolve from `plugin/`; marketplace references resolve from the repository root.
 - Enforce `skills` and marketplace sources as directories and `hooks` as a file.
 - Collect all manifest and target failures before returning.
@@ -633,7 +633,7 @@ export function formatDiagnostic(item) {
 Run:
 
 ```powershell
-node --test --test-name-pattern="aggregates|parse failures" tests/manifest-references.test.mjs
+node --test --test-name-pattern="aggregates|parse failures|extraction failure" tests/manifest-references.test.mjs
 ```
 
 Expected: PASS, 3 selected tests.
@@ -906,7 +906,7 @@ Change the `engines` object in `package.json` to match ESLint 10's existing runt
 
 ```json
 "engines": {
-  "node": ">=20.19.0"
+  "node": "^20.19.0 || ^22.13.0 || >=24"
 }
 ```
 
