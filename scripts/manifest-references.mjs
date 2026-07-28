@@ -245,7 +245,7 @@ export async function verifyRepository(rootDir, filesystem = fs) {
     }
   }
 
-  return diagnostics;
+  return { checkedCount: references.length, diagnostics };
 }
 
 export function formatDiagnostic(item) {

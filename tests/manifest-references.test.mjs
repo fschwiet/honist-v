@@ -1,14 +1,22 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import test from 'node:test';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 
 import {
   extractReferences,
   formatDiagnostic,
   verifyRepository,
 } from '../scripts/manifest-references.mjs';
+
+const execFileAsync = promisify(execFile);
+const cliPath = fileURLToPath(
+  new URL('../scripts/verify-manifest-references.mjs', import.meta.url),
+);
 
 async function makeRepository() {
   const root = await mkdtemp(path.join(tmpdir(), 'honist-v-manifests-'));
@@ -187,7 +195,7 @@ test('aggregates missing and wrong-kind targets across manifests', async (t) => 
     plugins: [{ source: { source: 'local', path: './plugin' } }],
   });
 
-  const diagnostics = await verifyRepository(root);
+  const { diagnostics } = await verifyRepository(root);
 
   assert.equal(diagnostics.length, 4);
   assert.deepEqual(
@@ -203,7 +211,7 @@ test('reports parse failures at the document field and continues', async (t) => 
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, 'plugin/.claude-plugin/plugin.json'), '{invalid');
 
-  const diagnostics = await verifyRepository(root);
+  const { diagnostics } = await verifyRepository(root);
 
   assert.equal(diagnostics.length, 4);
   assert.equal(diagnostics[0].field, '$');
@@ -221,7 +229,7 @@ test('inspects valid references after an extraction failure', async (t) => {
   await writeJson(root, '.claude-plugin/marketplace.json', {});
   await writeJson(root, '.agents/plugins/marketplace.json', {});
 
-  const diagnostics = await verifyRepository(root);
+  const { diagnostics } = await verifyRepository(root);
 
   assert.equal(diagnostics.length, 2);
   assert.deepEqual(
@@ -256,7 +264,7 @@ test('collects non-missing read and stat failures once each', async () => {
     },
   };
 
-  const diagnostics = await verifyRepository('repo', filesystem);
+  const { diagnostics } = await verifyRepository('repo', filesystem);
 
   assert.equal(diagnostics.length, 2);
   assert.match(diagnostics[0].message, /cannot be read/);
@@ -278,8 +286,59 @@ test('classifies ENOTDIR as one missing-target diagnostic', async () => {
     },
   };
 
-  const diagnostics = await verifyRepository('repo', filesystem);
+  const { diagnostics } = await verifyRepository('repo', filesystem);
 
   assert.equal(diagnostics.length, 2);
   assert.ok(diagnostics.every(({ message }) => message === 'referenced target is missing'));
+});
+
+async function writeValidRepository(root) {
+  await mkdir(path.join(root, 'plugin/skills'), { recursive: true });
+  await mkdir(path.join(root, 'plugin/skills-codex'), {
+    recursive: true,
+  });
+  await mkdir(path.join(root, 'plugin/hooks'), { recursive: true });
+  await writeFile(path.join(root, 'plugin/hooks/hooks.json'), '{}\n');
+  await writeJson(root, 'plugin/.claude-plugin/plugin.json', {
+    skills: ['./skills'],
+    hooks: './hooks/hooks.json',
+  });
+  await writeJson(root, 'plugin/.codex-plugin/plugin.json', {
+    skills: ['./skills-codex'],
+  });
+  await writeJson(root, '.claude-plugin/marketplace.json', {
+    plugins: [{ source: './plugin' }],
+  });
+  await writeJson(root, '.agents/plugins/marketplace.json', {
+    plugins: [{ source: { source: 'local', path: './plugin' } }],
+  });
+}
+
+test('CLI exits zero and prints a success summary', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeValidRepository(root);
+
+  const result = await execFileAsync(process.execPath, [cliPath], {
+    cwd: root,
+  });
+
+  assert.equal(result.stderr, '');
+  assert.match(result.stdout, /verified 5 manifest references/i);
+});
+
+test('CLI exits one after printing every diagnostic and a count', async (t) => {
+  const root = await makeRepository();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeValidRepository(root);
+  await rm(path.join(root, 'plugin/skills'), { recursive: true });
+  await rm(path.join(root, 'plugin/hooks/hooks.json'));
+
+  await assert.rejects(execFileAsync(process.execPath, [cliPath], { cwd: root }), (error) => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /\$\.skills\[0\]/);
+    assert.match(error.stderr, /\$\.hooks/);
+    assert.match(error.stderr, /2 manifest reference errors/i);
+    return true;
+  });
 });
