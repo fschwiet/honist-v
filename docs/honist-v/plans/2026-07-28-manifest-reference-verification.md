@@ -92,9 +92,7 @@ test('extracts current Claude and Codex marketplace sources', () => {
   const codex = extractReferences(
     'codex-marketplace',
     {
-      plugins: [
-        { source: { source: 'local', path: './plugin' } },
-      ],
+      plugins: [{ source: { source: 'local', path: './plugin' } }],
     },
     '.agents/plugins/marketplace.json',
     '.',
@@ -140,23 +138,15 @@ function diagnostic(manifestPath, field, message, details = {}) {
 
 function requireArray(value, manifestPath, field, diagnostics) {
   if (!Array.isArray(value)) {
-    diagnostics.push(
-      diagnostic(manifestPath, field, 'expected an array'),
-    );
+    diagnostics.push(diagnostic(manifestPath, field, 'expected an array'));
     return undefined;
   }
   return value;
 }
 
 function requireObject(value, manifestPath, field, diagnostics) {
-  if (
-    value === null ||
-    typeof value !== 'object' ||
-    Array.isArray(value)
-  ) {
-    diagnostics.push(
-      diagnostic(manifestPath, field, 'expected an object'),
-    );
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    diagnostics.push(diagnostic(manifestPath, field, 'expected an object'));
     return undefined;
   }
   return value;
@@ -190,12 +180,7 @@ function extractPlugin(document, manifestPath, baseDir) {
   const diagnostics = [];
 
   if (Object.hasOwn(document, 'skills')) {
-    const skills = requireArray(
-      document.skills,
-      manifestPath,
-      '$.skills',
-      diagnostics,
-    );
+    const skills = requireArray(document.skills, manifestPath, '$.skills', diagnostics);
     skills?.forEach((value, index) => {
       addStringReference(references, diagnostics, {
         manifestPath,
@@ -227,20 +212,10 @@ function extractMarketplace(document, manifestPath, baseDir, kind) {
   if (!Object.hasOwn(document, 'plugins')) {
     return { references, diagnostics };
   }
-  const plugins = requireArray(
-    document.plugins,
-    manifestPath,
-    '$.plugins',
-    diagnostics,
-  );
+  const plugins = requireArray(document.plugins, manifestPath, '$.plugins', diagnostics);
   plugins?.forEach((value, index) => {
     const pluginField = `$.plugins[${index}]`;
-    const plugin = requireObject(
-      value,
-      manifestPath,
-      pluginField,
-      diagnostics,
-    );
+    const plugin = requireObject(value, manifestPath, pluginField, diagnostics);
     if (!plugin || !Object.hasOwn(plugin, 'source')) return;
 
     if (kind === 'claude-marketplace') {
@@ -267,12 +242,7 @@ function extractMarketplace(document, manifestPath, baseDir, kind) {
     }
 
     const sourceField = `${pluginField}.source`;
-    const source = requireObject(
-      plugin.source,
-      manifestPath,
-      sourceField,
-      diagnostics,
-    );
+    const source = requireObject(plugin.source, manifestPath, sourceField, diagnostics);
     if (!source) return;
     if (source.source !== 'local') {
       diagnostics.push(
@@ -298,16 +268,10 @@ function extractMarketplace(document, manifestPath, baseDir, kind) {
 }
 
 export function extractReferences(kind, document, manifestPath, baseDir) {
-  if (
-    document === null ||
-    typeof document !== 'object' ||
-    Array.isArray(document)
-  ) {
+  if (document === null || typeof document !== 'object' || Array.isArray(document)) {
     return {
       references: [],
-      diagnostics: [
-        diagnostic(manifestPath, '$', 'expected a JSON object'),
-      ],
+      diagnostics: [diagnostic(manifestPath, '$', 'expected a JSON object')],
     };
   }
   if (kind === 'plugin') {
@@ -336,24 +300,9 @@ const invalidCases = [
   ['plugin document', 'plugin', null, '$'],
   ['skills container', 'plugin', { skills: {} }, '$.skills'],
   ['skills element', 'plugin', { skills: [null] }, '$.skills[0]'],
-  [
-    'hooks leaf',
-    'plugin',
-    { hooks: null },
-    '$.hooks',
-  ],
-  [
-    'plugins container',
-    'claude-marketplace',
-    { plugins: {} },
-    '$.plugins',
-  ],
-  [
-    'plugin element',
-    'claude-marketplace',
-    { plugins: [null] },
-    '$.plugins[0]',
-  ],
+  ['hooks leaf', 'plugin', { hooks: null }, '$.hooks'],
+  ['plugins container', 'claude-marketplace', { plugins: {} }, '$.plugins'],
+  ['plugin element', 'claude-marketplace', { plugins: [null] }, '$.plugins[0]'],
   [
     'Claude remote source',
     'claude-marketplace',
@@ -382,12 +331,7 @@ const invalidCases = [
 
 for (const [name, kind, document, field] of invalidCases) {
   test(`rejects invalid ${name}`, () => {
-    const result = extractReferences(
-      kind,
-      document,
-      'manifest.json',
-      '.',
-    );
+    const result = extractReferences(kind, document, 'manifest.json', '.');
     assert.equal(result.diagnostics.length, 1);
     assert.equal(result.diagnostics[0].field, field);
   });
@@ -399,15 +343,15 @@ test('skips absent optional path-bearing properties', () => {
     ['claude-marketplace', { plugins: [{}] }],
     ['codex-marketplace', { plugins: [{}] }],
   ]) {
-    assert.deepEqual(
-      extractReferences(kind, document, 'manifest.json', '.'),
-      { references: [], diagnostics: [] },
-    );
+    assert.deepEqual(extractReferences(kind, document, 'manifest.json', '.'), {
+      references: [],
+      diagnostics: [],
+    });
   }
 });
 ```
 
-- [ ] **Step 6: Run the type-boundary tests and make the smallest corrections needed**
+- [ ] **Step 6: Run the type-boundary tests**
 
 Run:
 
@@ -415,7 +359,7 @@ Run:
 node --test tests/manifest-references.test.mjs
 ```
 
-Expected: PASS, 13 tests. If a field path differs, correct the extractor to match the exact `$`-based paths asserted above; do not weaken the assertions.
+Expected: PASS, 13 tests with the exact `$`-based field paths asserted above.
 
 - [ ] **Step 7: Commit the extraction slice**
 
@@ -445,10 +389,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import {
-  formatDiagnostic,
-  verifyRepository,
-} from '../scripts/manifest-references.mjs';
+import { formatDiagnostic, verifyRepository } from '../scripts/manifest-references.mjs';
 
 async function makeRepository() {
   const root = await mkdtemp(path.join(tmpdir(), 'honist-v-manifests-'));
@@ -464,10 +405,7 @@ async function makeRepository() {
 }
 
 async function writeJson(root, relativePath, value) {
-  await writeFile(
-    path.join(root, relativePath),
-    `${JSON.stringify(value, null, 2)}\n`,
-  );
+  await writeFile(path.join(root, relativePath), `${JSON.stringify(value, null, 2)}\n`);
 }
 ```
 
@@ -499,12 +437,7 @@ test('aggregates missing and wrong-kind targets across manifests', async (t) => 
   assert.equal(diagnostics.length, 4);
   assert.deepEqual(
     diagnostics.map(({ field }) => field),
-    [
-      '$.skills[1]',
-      '$.hooks',
-      '$.skills[0]',
-      '$.plugins[0].source',
-    ],
+    ['$.skills[1]', '$.hooks', '$.skills[0]', '$.plugins[0].source'],
   );
   assert.match(formatDiagnostic(diagnostics[0]), /missing-skill/);
   assert.match(formatDiagnostic(diagnostics[0]), /expected directory/);
@@ -513,21 +446,14 @@ test('aggregates missing and wrong-kind targets across manifests', async (t) => 
 test('reports parse failures at the document field and continues', async (t) => {
   const root = await makeRepository();
   t.after(() => rm(root, { recursive: true, force: true }));
-  await writeFile(
-    path.join(root, 'plugin/.claude-plugin/plugin.json'),
-    '{invalid',
-  );
+  await writeFile(path.join(root, 'plugin/.claude-plugin/plugin.json'), '{invalid');
 
   const diagnostics = await verifyRepository(root);
 
   assert.equal(diagnostics.length, 4);
   assert.equal(diagnostics[0].field, '$');
   assert.match(diagnostics[0].message, /invalid JSON/);
-  assert.equal(
-    diagnostics.filter(({ message }) => message === 'manifest is missing')
-      .length,
-    3,
-  );
+  assert.equal(diagnostics.filter(({ message }) => message === 'manifest is missing').length, 3);
 });
 ```
 
@@ -577,9 +503,7 @@ Append to `scripts/manifest-references.mjs`:
 
 ```js
 function filesystemMessage(error, missingMessage, otherMessage) {
-  return error?.code === 'ENOENT' || error?.code === 'ENOTDIR'
-    ? missingMessage
-    : otherMessage;
+  return error?.code === 'ENOENT' || error?.code === 'ENOTDIR' ? missingMessage : otherMessage;
 }
 
 export async function verifyRepository(rootDir, filesystem = fs) {
@@ -610,32 +534,17 @@ export async function verifyRepository(rootDir, filesystem = fs) {
     try {
       document = JSON.parse(source);
     } catch (error) {
-      diagnostics.push(
-        diagnostic(
-          manifest.path,
-          '$',
-          `invalid JSON: ${error.message}`,
-        ),
-      );
+      diagnostics.push(diagnostic(manifest.path, '$', `invalid JSON: ${error.message}`));
       continue;
     }
 
-    const extracted = extractReferences(
-      manifest.kind,
-      document,
-      manifest.path,
-      manifest.baseDir,
-    );
+    const extracted = extractReferences(manifest.kind, document, manifest.path, manifest.baseDir);
     references.push(...extracted.references);
     diagnostics.push(...extracted.diagnostics);
   }
 
   for (const reference of references) {
-    const resolvedPath = path.resolve(
-      rootDir,
-      reference.baseDir,
-      reference.value,
-    );
+    const resolvedPath = path.resolve(rootDir, reference.baseDir, reference.value);
     let stats;
     try {
       stats = await filesystem.stat(resolvedPath);
@@ -655,18 +564,13 @@ export async function verifyRepository(rootDir, filesystem = fs) {
       continue;
     }
 
-    const matches =
-      reference.expectedKind === 'file'
-        ? stats.isFile()
-        : stats.isDirectory();
+    const matches = reference.expectedKind === 'file' ? stats.isFile() : stats.isDirectory();
     if (!matches) {
       diagnostics.push(
-        diagnostic(
-          reference.manifestPath,
-          reference.field,
-          `expected ${reference.expectedKind}`,
-          { ...reference, resolvedPath },
-        ),
+        diagnostic(reference.manifestPath, reference.field, `expected ${reference.expectedKind}`, {
+          ...reference,
+          resolvedPath,
+        }),
       );
     }
   }
@@ -677,9 +581,7 @@ export async function verifyRepository(rootDir, filesystem = fs) {
 export function formatDiagnostic(item) {
   const details = [
     `${item.manifestPath}:${item.field}`,
-    item.value === undefined
-      ? undefined
-      : `reference ${JSON.stringify(item.value)}`,
+    item.value === undefined ? undefined : `reference ${JSON.stringify(item.value)}`,
     item.expectedKind ? `expected ${item.expectedKind}` : undefined,
     item.resolvedPath ? `resolved ${item.resolvedPath}` : undefined,
   ].filter(Boolean);
@@ -708,14 +610,8 @@ test('collects non-missing read and stat failures once each', async () => {
       path.normalize('plugin/.claude-plugin/plugin.json'),
       JSON.stringify({ skills: ['./blocked-target'] }),
     ],
-    [
-      path.normalize('plugin/.codex-plugin/plugin.json'),
-      JSON.stringify({}),
-    ],
-    [
-      path.normalize('.claude-plugin/marketplace.json'),
-      JSON.stringify({}),
-    ],
+    [path.normalize('plugin/.codex-plugin/plugin.json'), JSON.stringify({})],
+    [path.normalize('.claude-plugin/marketplace.json'), JSON.stringify({})],
   ]);
   const denied = Object.assign(new Error('access denied'), {
     code: 'EACCES',
@@ -758,15 +654,11 @@ test('classifies ENOTDIR as one missing-target diagnostic', async () => {
   const diagnostics = await verifyRepository('repo', filesystem);
 
   assert.equal(diagnostics.length, 2);
-  assert.ok(
-    diagnostics.every(
-      ({ message }) => message === 'referenced target is missing',
-    ),
-  );
+  assert.ok(diagnostics.every(({ message }) => message === 'referenced target is missing'));
 });
 ```
 
-- [ ] **Step 6: Run all module tests and correct any one-diagnostic ordering defect**
+- [ ] **Step 6: Run all module tests**
 
 Run:
 
@@ -855,16 +747,13 @@ test('CLI exits one after printing every diagnostic and a count', async (t) => {
   await rm(path.join(root, 'plugin/skills'), { recursive: true });
   await rm(path.join(root, 'plugin/hooks/hooks.json'));
 
-  await assert.rejects(
-    execFileAsync(process.execPath, [cliPath], { cwd: root }),
-    (error) => {
-      assert.equal(error.code, 1);
-      assert.match(error.stderr, /\$\.skills\[0\]/);
-      assert.match(error.stderr, /\$\.hooks/);
-      assert.match(error.stderr, /2 manifest reference errors/i);
-      return true;
-    },
-  );
+  await assert.rejects(execFileAsync(process.execPath, [cliPath], { cwd: root }), (error) => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /\$\.skills\[0\]/);
+    assert.match(error.stderr, /\$\.hooks/);
+    assert.match(error.stderr, /2 manifest reference errors/i);
+    return true;
+  });
 });
 ```
 
@@ -911,10 +800,7 @@ Apply the same destructuring to calls that pass an injected filesystem.
 Create `scripts/verify-manifest-references.mjs`:
 
 ```js
-import {
-  formatDiagnostic,
-  verifyRepository,
-} from './manifest-references.mjs';
+import { formatDiagnostic, verifyRepository } from './manifest-references.mjs';
 
 const { checkedCount, diagnostics } = await verifyRepository(process.cwd());
 
@@ -923,9 +809,7 @@ if (diagnostics.length > 0) {
     console.error(formatDiagnostic(item));
   }
   const noun = diagnostics.length === 1 ? 'error' : 'errors';
-  console.error(
-    `${diagnostics.length} manifest reference ${noun}`,
-  );
+  console.error(`${diagnostics.length} manifest reference ${noun}`);
   process.exitCode = 1;
 } else {
   const noun = checkedCount === 1 ? 'reference' : 'references';
@@ -1011,9 +895,7 @@ Replace the existing `## Verification` section through its scripts table with:
 ````markdown
 ## Verification
 
-The verification pipeline checks formatting, JavaScript and Markdown lint,
-manifest-reference behavior, and every file or directory referenced by the
-current plugin and marketplace manifests:
+The verification pipeline checks formatting, JavaScript and Markdown lint, manifest-reference behavior, and every file or directory referenced by the current plugin and marketplace manifests:
 
 ```bash
 pnpm install
@@ -1022,14 +904,14 @@ pnpm verify
 
 Other useful scripts:
 
-| Script                              | Description                              |
-| ----------------------------------- | ---------------------------------------- |
-| `pnpm verify:manifest-references`   | Check references in committed manifests |
-| `pnpm test:manifest-references`     | Test manifest-reference verification    |
-| `pnpm lint`                         | Run ESLint                               |
-| `pnpm lint:md`                      | Lint Markdown with markdownlint          |
-| `pnpm format`                       | Format all files with Prettier           |
-| `pnpm format:check`                 | Check formatting without writing         |
+| Script                            | Description                             |
+| --------------------------------- | --------------------------------------- |
+| `pnpm verify:manifest-references` | Check references in committed manifests |
+| `pnpm test:manifest-references`   | Test manifest-reference verification    |
+| `pnpm lint`                       | Run ESLint                              |
+| `pnpm lint:md`                    | Lint Markdown with markdownlint         |
+| `pnpm format`                     | Format all files with Prettier          |
+| `pnpm format:check`               | Check formatting without writing        |
 ````
 
 Keep the existing CI paragraph immediately after the table.
