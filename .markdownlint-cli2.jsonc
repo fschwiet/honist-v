@@ -4,8 +4,8 @@
   "ignores": [
     "node_modules/",
     "pnpm-lock.yaml",
-    "plugin/skills/engineering",
-    "plugin/skills/productivity",
+    "plugin/skills/mattpocock-skills/engineering",
+    "plugin/skills/mattpocock-skills/productivity",
   ],
 
   "config": {

@@ -3,5 +3,11 @@
   "version": "0.0.10",
   "description": "A personal curation of agentic tools.",
   "license": "MIT",
-  "skills": ["./skills/", "./skills-codex/", "./skills/engineering", "./skills/productivity"]
+  "skills": [
+    "./skills/",
+    "./skills-codex/",
+    "./skills/obra-superpowers/",
+    "./skills/mattpocock-skills/engineering/",
+    "./skills/mattpocock-skills/productivity/"
+  ]
 }

@@ -2,6 +2,11 @@
   "name": "honist-v",
   "description": "A personal curation of agentic tools.",
   "version": "0.0.10",
-  "skills": ["./skills-claude", "./skills/engineering", "./skills/productivity"],
+  "skills": [
+    "./skills-claude",
+    "./skills/obra-superpowers/",
+    "./skills/mattpocock-skills/engineering/",
+    "./skills/mattpocock-skills/productivity/"
+  ],
   "hooks": "./claude-only-hooks/hooks.json"
 }
