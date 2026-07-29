@@ -1,7 +1,7 @@
 {
   "name": "honist-v",
   "description": "A personal curation of agentic tools.",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "skills": [
     "./skills-claude",
     "./skills/obra-superpowers/",
