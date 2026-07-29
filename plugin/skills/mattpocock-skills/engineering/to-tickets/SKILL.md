@@ -69,12 +69,12 @@ Use the **prompt-a-peer-high** skill to have a peer review the approved tickets.
 Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured — the tickets are the same either way, only the shape of the blocking edges changes:
 
 - **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below — one ticket per file, never a single combined file.
-- **GitHub** → publish one issue per ticket in dependency order (blockers first), each with its full prose body (`## Parent` / `## Blocked by` included) on creation; capture each issue's number and database id. Then, if the spec for this run is itself a GitHub issue in this repo, link each ticket to it as parent, and link each ticket to its blockers — both via "Parent and blocking issue links" in `docs/agents/issue-tracker.md`. Apply the `ready-for-agent` triage label unless instructed otherwise — the tickets are agent-grabbable by construction.
+- **GitHub** → publish one issue per ticket in dependency order (blockers first), each with its full prose body (`## Parent` / `## Blocked by` included) on creation; capture each issue's number and database id. When the source of the tickets is itself a GitHub issue in this repo, link each ticket as a sub-issue via "Linking sub-issues" in `docs/agents/issue-tracker.md` Link each ticket to its blockers via "Linking blocking issues" in `docs/agents/issue-tracker.md`. Apply the `ready-for-agent` triage label unless instructed otherwise — the tickets are agent-grabbable by construction.
 - **Other real trackers (Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise — the tickets are agent-grabbable by construction.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
-Do NOT close or modify any parent issue (adding the sub-issue link is not a modification — see the doc).
+Do NOT close or modify any parent issue (linking the sub-issue is not a modification — see the doc).
 
 <local-ticket-template>
 
