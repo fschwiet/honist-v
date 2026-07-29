@@ -33,6 +33,16 @@ Create a GitHub issue.
 
 Run `gh issue view <number> --comments`.
 
+## Parent and blocking issue links
+
+Used by any skill that publishes a GitHub issue and needs to represent a parent (e.g. a spec issue) or blocking-ticket relationship as a native GitHub relationship rather than only prose.
+
+- **Parent (sub-issue)**: `gh api --method POST repos/<owner>/<repo>/issues/<parent-number>/sub_issues -F sub_issue_id=<child-db-id>`, where `<child-db-id>` is the child's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, not the `#number`). If the parent and child issues themselves were already resolved successfully (they exist), a 404/410 specifically from this `sub_issues` call is the confirmed unsupported-feature signal — fall back to prose only in that case. Any other failure (403, 422, 5xx, a failed issue lookup, etc.) should be reported rather than silently treated as a fallback.
+- **Blocking**: `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric database id. Same rule: a 404/410 specifically from this `dependencies/blocked_by` call, with both issues already known to exist, is the confirmed unsupported-feature signal and falls back to prose; other failures should be reported.
+- **Per-edge independence**: fallback or an unexpected failure on one edge (the parent link, or one specific blocker's link) never skips the others — attempt every remaining edge for that ticket, and every remaining ticket, regardless of what happened on an earlier edge.
+- **Partial-failure behavior**: an unexpected (non-fallback) failure linking one issue's relationships should be reported, calling out that specific ticket by number so the user knows which link needs manual repair, and publishing of the remaining issues should continue — don't abort the whole run over one failed link.
+- Adding either relationship edge is not a "modification" of the parent/blocker issue for the purposes of any "do not modify" instruction elsewhere in a skill — it changes relationship data only, never the other issue's body, labels, or state.
+
 ## Wayfinding operations
 
 Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
