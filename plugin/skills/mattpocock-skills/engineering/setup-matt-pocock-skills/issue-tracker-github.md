@@ -35,21 +35,20 @@ Run `gh issue view <number> --comments`.
 
 ## Parent and blocking issue links
 
-Used by any skill that publishes a GitHub issue and needs to represent a parent (e.g. a spec issue) or blocking-ticket relationship as a native GitHub relationship rather than only prose.
+Used by any skill publishing a GitHub issue that needs a native parent (e.g. a spec issue) or blocking relationship rather than prose alone.
 
-- **Parent (sub-issue)**: `gh api --method POST repos/<owner>/<repo>/issues/<parent-number>/sub_issues -F sub_issue_id=<child-db-id>`, where `<child-db-id>` is the child's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, not the `#number`). If the parent and child issues themselves were already resolved successfully (they exist), a 404/410 specifically from this `sub_issues` call is the confirmed unsupported-feature signal — fall back to prose only in that case. Any other failure (403, 422, 5xx, a failed issue lookup, etc.) should be reported rather than silently treated as a fallback.
-- **Blocking**: `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric database id. Same rule: a 404/410 specifically from this `dependencies/blocked_by` call, with both issues already known to exist, is the confirmed unsupported-feature signal and falls back to prose; other failures should be reported.
-- **Per-edge independence**: fallback or an unexpected failure on one edge (the parent link, or one specific blocker's link) never skips the others — attempt every remaining edge for that ticket, and every remaining ticket, regardless of what happened on an earlier edge.
-- **Partial-failure behavior**: an unexpected (non-fallback) failure linking one issue's relationships should be reported, calling out that specific ticket by number so the user knows which link needs manual repair, and publishing of the remaining issues should continue — don't abort the whole run over one failed link.
-- Adding either relationship edge is not a "modification" of the parent/blocker issue for the purposes of any "do not modify" instruction elsewhere in a skill — it changes relationship data only, never the other issue's body, labels, or state.
+- **Parent (sub-issue)**: `gh api --method POST repos/<owner>/<repo>/issues/<parent-number>/sub_issues -F sub_issue_id=<child-db-id>`.
+- **Blocking**: `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`.
+
+Both `<*-db-id>` values are the issue's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`), not its `#number`. Link each edge independently; where the endpoint isn't available for this repo, fall back to the `## Parent` / `## Blocked by` prose already in the body and continue. Adding an edge changes relationship data only — it isn't a "modification" of the parent/blocker issue under any "do not modify" rule elsewhere.
 
 ## Wayfinding operations
 
 Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
 
 - **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body. `gh issue create --label wayfinder:map`.
-- **Child ticket**: an issue linked to the map as a GitHub sub-issue (`gh api` on the sub-issues endpoint). Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
-- **Blocking**: GitHub's **native issue dependencies** — the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). GitHub reports `issue_dependencies_summary.blocked_by` (open blockers only — the live gate). Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
+- **Child ticket**: an issue linked to the map as a sub-issue — the parent link from "Parent and blocking issue links" above, with the map as parent. Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
+- **Blocking**: the **native dependency** edge from "Parent and blocking issue links" above — canonical and UI-visible. GitHub reports `issue_dependencies_summary.blocked_by` (open blockers only — the live gate); a ticket is unblocked when every blocker is closed. Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body.
 - **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
 - **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
