@@ -10,7 +10,7 @@ Create a coding-standards report from the project's files.
 
 ## Process
 
-1. Ask which files to sniff. Offer the default: every `.md` file recursively below the project root, excluding `docs/honist-v/`. Treat an empty answer as acceptance of the default. Resolve the user's answer to a concrete set of files within the project root.
+1. Ask the user to confirm the default selection—every `.md` file recursively below the project root, excluding `docs/honist-v/`—or say which files to sniff instead. Resolve the response to a concrete set of files within the project root.
 
 2. Sort the selected files by their project-root-relative paths. Present the exact sorted list, one relative path per line, followed by the total file count. Ask the user to confirm this scope. Do not start sniffing until it is confirmed.
 
