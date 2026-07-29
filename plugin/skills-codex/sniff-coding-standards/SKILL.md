@@ -14,7 +14,13 @@ Create a coding-standards report from the project's files.
 
 2. Sort the selected files by their project-root-relative paths. Present the exact sorted list, one relative path per line, followed by the total file count. Ask the user to confirm this scope. Do not start sniffing until it is confirmed.
 
-3. For each confirmed file, in the displayed order, run the `coding-standards-sniffer.toml` agent in this skill directory. Supply only that file's project-root-relative path as the agent input. Keep the agent's two output sections separate; each finding belongs to the input file it was produced from.
+3. For each confirmed file, in the displayed order, run the `coding-standards-sniffer.toml` agent in this skill directory.
+
+   - Configure the agent from that TOML file; do not paste its developer instructions into the user input.
+   - Supply only that file's project-root-relative path as the agent input.
+   - Capture only the agent's final response, excluding CLI/session transcripts, tool logs, and echoed prompts.
+   - Parse the final response as exactly these two sections: `## Coding-standard descriptions` and `## Coding-standard references`.
+   - Keep the findings from those sections separate; each finding belongs to the input file it was produced from.
 
 4. Write these two Markdown reports, replacing any prior versions:
 
