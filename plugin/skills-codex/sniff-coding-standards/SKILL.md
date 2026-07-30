@@ -14,7 +14,7 @@ Create a coding-standards report from the project's files.
 
 2. Sort the selected files by their project-root-relative paths. Present the exact sorted list, one relative path per line, followed by the total file count. Ask the user to confirm this scope. Do not start sniffing until it is confirmed.
 
-3. For each confirmed file, in the displayed order, spawn a native subagent.
+3. For each confirmed file, in the displayed order, spawn a separate, new native subagent. Do not reuse a subagent from a prior file and do not call `followup_task`; each file must start in a fresh child thread with no prior-file context.
 
    - Use the task name `coding-standards-sniffer`, model `gpt-5.6-luna`, and medium reasoning effort.
    - If the host supports a per-agent sandbox setting, set it to read-only. Otherwise, the subagent inherits the parent sandbox; its instructions must still prohibit modifications.
@@ -41,6 +41,7 @@ Create a coding-standards report from the project's files.
      ```
 
    - Capture only the agent's final response, excluding CLI/session transcripts, tool logs, and echoed prompts.
+   - Wait for that child to finish before spawning the child for the next file, so capture its final response against the matching file.
    - Parse the final response as exactly these two sections: `## Coding-standard descriptions` and `## Coding-standard references`.
    - Keep the findings from those sections separate; each finding belongs to the input file it was produced from.
 
