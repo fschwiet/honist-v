@@ -1,4 +1,0 @@
-interface:
-  display_name: 'Create Codex Agent'
-  short_description: 'Create a project-scoped Codex custom agent.'
-  default_prompt: 'Create a Codex custom agent for this project.'

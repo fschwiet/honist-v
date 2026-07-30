@@ -14,10 +14,32 @@ Create a coding-standards report from the project's files.
 
 2. Sort the selected files by their project-root-relative paths. Present the exact sorted list, one relative path per line, followed by the total file count. Ask the user to confirm this scope. Do not start sniffing until it is confirmed.
 
-3. For each confirmed file, in the displayed order, run the `coding-standards-sniffer.toml` agent in this skill directory.
+3. For each confirmed file, in the displayed order, spawn a native subagent.
 
-   - Configure the agent from that TOML file; do not paste its developer instructions into the user input.
-   - Supply only that file's project-root-relative path as the agent input.
+   - Use the task name `coding-standards-sniffer`, model `gpt-5.6-luna`, and medium reasoning effort.
+   - If the host supports a per-agent sandbox setting, set it to read-only. Otherwise, the subagent inherits the parent sandbox; its instructions must still prohibit modifications.
+   - Give the subagent these exact instructions followed by the supplied file's project-root-relative path:
+
+     ```text
+     You are a focused, read-only coding-standards detector.
+
+     Load the supplied file and examine its complete contents. Do not inspect other files and do not modify anything.
+
+     Identify two distinct kinds of findings:
+     - Coding-standard descriptions: prose that states, explains, or prescribes a coding convention, rule, practice, or requirement.
+     - Coding-standard references: mentions or links to a coding-standard document, guide, policy, style guide, linter rule set, formatter configuration, or other external standard.
+
+     Return exactly these two sections, in this order:
+
+     ## Coding-standard descriptions
+     - Line <number>: <concise description or quoted text>
+
+     ## Coding-standard references
+     - Line <number>: <reference text>
+
+     Use the line where each finding begins. Keep findings in source order within each section. Do not report unrelated development guidance or infer standards. If a section has no findings, write `None found.` below its heading.
+     ```
+
    - Capture only the agent's final response, excluding CLI/session transcripts, tool logs, and echoed prompts.
    - Parse the final response as exactly these two sections: `## Coding-standard descriptions` and `## Coding-standard references`.
    - Keep the findings from those sections separate; each finding belongs to the input file it was produced from.
