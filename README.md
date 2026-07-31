@@ -56,13 +56,15 @@ pnpm verify
 
 Other useful scripts:
 
-| Script                            | Description                             |
-| --------------------------------- | --------------------------------------- |
-| `pnpm verify:manifest-references` | Check references in committed manifests |
-| `pnpm test:manifest-references`   | Test manifest-reference verification    |
-| `pnpm lint`                       | Run ESLint                              |
-| `pnpm lint:md`                    | Lint Markdown with markdownlint         |
-| `pnpm format`                     | Format all files with Prettier          |
-| `pnpm format:check`               | Check formatting without writing        |
+| Script                            | Description                                   |
+| --------------------------------- | --------------------------------------------- |
+| `pnpm release`                    | Verify, bump the patch version, and push main |
+| `pnpm verify:manifest-references` | Check references in committed manifests       |
+| `pnpm test:manifest-references`   | Test manifest-reference verification          |
+| `pnpm test:release-version`       | Test the release script's version-bump logic  |
+| `pnpm lint`                       | Run ESLint                                    |
+| `pnpm lint:md`                    | Lint Markdown with markdownlint               |
+| `pnpm format`                     | Format all files with Prettier                |
+| `pnpm format:check`               | Check formatting without writing              |
 
 CI runs `pnpm verify` on every push and pull request (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
