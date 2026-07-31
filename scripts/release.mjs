@@ -6,7 +6,17 @@ import { computeVersionBump } from './release-version.mjs';
 const PLUGIN_MANIFESTS = ['plugin/.claude-plugin/plugin.json', 'plugin/.codex-plugin/plugin.json'];
 
 function runCommand(cmd, args, { shell = false } = {}) {
-  const result = spawnSync(cmd, args, { stdio: 'inherit', shell });
+  // Node emits DEP0190 if shell:true is combined with a non-empty args
+  // array (args get concatenated into the shell string unescaped). Since
+  // our shell:true callers never pass untrusted input, fold args into the
+  // command string ourselves and call with an empty args array instead.
+
+  // We can't always join the args because when shell is false cmd is treated
+  // as a command name.
+
+  const result = shell
+    ? spawnSync([cmd, ...args].join(' '), [], { stdio: 'inherit', shell })
+    : spawnSync(cmd, args, { stdio: 'inherit', shell });
   return result.error === undefined && result.signal === null && result.status === 0;
 }
 
