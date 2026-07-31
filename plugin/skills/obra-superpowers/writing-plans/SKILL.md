@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: 'Adaptation of writing-plans skill originally from Jesse Vincent. Some differences: is user invoked, has peer review, spec/plan location is fixed (and different)'
+description: 'Turns a spec into a plan.'
 disable-model-invocation: true
 ---
 
@@ -12,9 +12,9 @@ Write comprehensive implementation plans assuming the engineer has zero context 
 
 Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+**Announce at start:** "We're using the writing-plans skill to create the implementation plan."
 
-If the current repository has folder /docs/adr then include the skill "domain-modeling" with this session.
+Include the /domain-modeling skill throughout this session. Changes to the ADRs and CONTEXT.md are complementary to the plan. The plan guides the next steps of implementation. The ADRs will provide context afterwards to explain what was done and why. The CONTEXT.md keeps those conversations coherent.
 
 ## Scope Check
 
@@ -154,7 +154,7 @@ If you find issues, fix them inline. No need to re-review — just commit the fi
 After the self-review passes and changes have been committed, use the **prompt-a-peer-high** skill to have a peer review the plan; include the spec for reference. If a peer reviewed an earlier version of the plan, ask it to review the changes since.
 
 - For feedback that points to a clear issue with a certain fix go ahead and commit the fix inline.
-- Tell the user about feedback that did not indicate a clear issue and is being discarded.
+- Tell me about feedback that did not indicate a clear issue and is being discarded.
 - Go to **Propose 2-3 fixes** to explore fixes for clear issues without a certain fix, otherwise skip to **Execution Handoff**.
 
 **Propose 2-3 fixes** For each clear issue without a certain fix:
@@ -168,6 +168,6 @@ Fix and commit issues inline. If there were substantial changes made return to *
 
 ## Execution Handoff
 
-After the plan is saved and reviewed, let the user decide what to do next:
+After the plan is saved and reviewed, let me decide what to do next:
 
 **"Plan complete and saved to `docs/honist-v/plans/<filename>.md`. Consider clearing context before executing the plan"**
