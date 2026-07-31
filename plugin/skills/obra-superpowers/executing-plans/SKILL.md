@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 Load plan, review critically, execute all tasks, report when complete.
 
-**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+**Announce at start:** "We're using the executing-plans skill to implement this plan."
 
 ## The Process
 
@@ -42,7 +42,7 @@ Address every finding: fix it, or record why you're deferring it. Re-run any ver
 
 After all tasks complete, verified, and reviewed:
 
-- Announce: "I've completed and verified all tasks."
+- Announce: "We've completed and verified all tasks."
 
 ## When to Stop and Ask for Help
 
