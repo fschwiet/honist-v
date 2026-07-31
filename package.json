@@ -9,9 +9,10 @@
   },
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm verify:manifest-references",
+    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm test:release-version && pnpm verify:manifest-references",
     "verify:manifest-references": "node scripts/verify-manifest-references.mjs",
     "test:manifest-references": "node --test tests/manifest-references.test.mjs",
+    "test:release-version": "node --test tests/release-version.test.mjs",
     "lint": "eslint .",
     "lint:md": "markdownlint-cli2",
     "format": "prettier --write .",
