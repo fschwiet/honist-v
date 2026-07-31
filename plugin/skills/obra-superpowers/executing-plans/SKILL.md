@@ -23,6 +23,8 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ### Step 2: Execute Tasks
 
+Before the first task, record the starting commit: `git rev-parse HEAD`. This is the fixed point for Step 3.
+
 For each task:
 
 1. Mark as in_progress
@@ -30,9 +32,15 @@ For each task:
 3. Run verifications as specified
 4. Mark as completed
 
-### Step 3: Complete Development
+### Step 3: Review the Changes
 
-After all tasks complete and verified:
+Invoke the `code-review-of-changeset` skill by name, passing the commit recorded in Step 2 as the fixed point.
+
+Address every finding: fix it, or record why you're deferring it. Re-run any verification a fix touches.
+
+### Step 4: Complete Development
+
+After all tasks complete, verified, and reviewed:
 
 - Announce: "I've completed and verified all tasks."
 
