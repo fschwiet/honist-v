@@ -16,4 +16,4 @@ codex exec --model "gpt-5.6-terra" --sandbox workspace-write "$(cat "$promptfile
 - **`< /dev/null` is mandatory.** Without it codex blocks on stdin and the call hangs until timeout. Append it to every invocation.
 - Passing the prompt through `"$(cat "$promptfile")"` keeps multi-line text and quoting intact; quote the paths so OS temp dirs with spaces still work.
 - `--output-last-message "$resultfile"` writes only the peer's final message; read that file to get the response.
-- Set a generous timeout — the peer runs a full agent loop; allow up to 10 minutes (600000 ms).
+- Extend the shell tool's timeout to ten minutes.
