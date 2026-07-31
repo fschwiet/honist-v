@@ -1,6 +1,6 @@
 ---
 name: code-review-of-changeset
-description: Use when the user wants to review a **changeset** - where the changeset is a diff between HEAD and a branch, tag or commit.
+description: Use when the user wants to review a **changeset** of source code - a diff between HEAD and a branch, tag or commit that changes code files. Not for reviewing specs, plans, or other documentation-only diffs, even ones containing code samples.
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
@@ -17,6 +17,8 @@ The issue tracker should have been provided to you — run `/setup-matt-pocock-s
 ### 1. Pin the fixed point
 
 Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
+
+If the diff touches only documentation — specs, plans, READMEs — with no changed source-code files, this skill doesn't apply: say so and stop rather than running the review on prose.
 
 Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
