@@ -151,7 +151,7 @@ If you find issues, fix them inline. No need to re-review — just commit the fi
 
 ## Peer Review
 
-After the self-review passes and changes have been committed, use the **prompt-a-peer-high** skill to have a peer review the plan; include the spec for reference. If a peer reviewed an earlier version of the plan, ask it to review the changes since.
+After the self-review passes and changes have been committed, use the **prompt-a-peer-medium** skill to have a peer review the plan; include the spec for reference. If a peer reviewed an earlier version of the plan, ask it to review the changes since.
 
 - For feedback that points to a clear issue with a certain fix go ahead and commit the fix inline.
 - Tell me about feedback that did not indicate a clear issue and is being discarded.
