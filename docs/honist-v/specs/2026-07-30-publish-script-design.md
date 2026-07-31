@@ -71,6 +71,12 @@ confirming the push.
 
 - **`pushToOrigin()`** — runs `git push origin main`.
 
+Like `verifyBuild()`, the `git commit` and `git push` invocations inside
+`bumpPatchVersion()` and `pushToOrigin()` rely on `runCommand`'s exit-status
+check: any failure (e.g. a rejected push, a commit hook failure) aborts the
+script with `runCommand`'s inherited stdio already showing the underlying
+git error, with no additional message layered on top.
+
 `main()` calls `verifyBuild()`, `checkMainSynced()`, `bumpPatchVersion()`,
 then `pushToOrigin()`, in that order — matching the skill's ordering so that
 the sync check always runs before any commit is made. If the sync check
