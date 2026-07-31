@@ -23,13 +23,21 @@ built-in test runner (`node --test`), no new dependencies.
 - No flags (no `--dry-run` or similar) and no interactive prompts of any
   kind.
 - Only plain `x.y.z` versions are supported — `version` fields with
-  pre-release or build-metadata suffixes (`-beta`, `+build`) are rejected.
+  pre-release or build-metadata suffixes (`-beta`, `+build`) or leading
+  zeros are rejected.
 - The script aborts if the git worktree has any staged or unstaged changes
   before it runs.
 - If `git push` fails after the version-bump commit has already been made
   locally, the script prints an explicit warning and exits non-zero — it
   does not retry, roll back, or detect/reuse the existing commit on a
   future run.
+- `spawnSync` must never be called with `shell: true` for a `git` command:
+  on Windows, `shell: true` collapses array arguments into one string
+  without safely re-quoting them, which breaks the `-m "<message>"` commit
+  message into separate words (verified locally — see Task 2, Step 1's
+  note). `shell: true` is only used for `pnpm`, whose arguments never
+  contain spaces, and which — as a `.cmd` shim on Windows — cannot be
+  spawned directly without a shell.
 - Source spec: `docs/honist-v/specs/2026-07-30-publish-script-design.md`.
 
 ---
@@ -43,8 +51,9 @@ built-in test runner (`node --test`), no new dependencies.
 - Create: `scripts/release.mjs` — the CLI entry point. Shells out to `pnpm`
   and `git`, imports `computeVersionBump` from `release-version.mjs`, runs
   `main()` unconditionally on load (this file is never imported by a test).
-- Modify: `package.json` — add a `"release"` script entry.
-- Modify: `README.md` — document `pnpm release` in the scripts table.
+- Modify: `package.json` — add `"test:release-version"` and `"release"`
+  script entries, and wire the former into `"verify"`.
+- Modify: `README.md` — document the new scripts in the scripts table.
 
 ---
 
@@ -54,6 +63,7 @@ built-in test runner (`node --test`), no new dependencies.
 
 - Create: `scripts/release-version.mjs`
 - Test: `tests/release-version.test.mjs`
+- Modify: `package.json:11-19` (the `"scripts"` block)
 
 **Interfaces:**
 
@@ -143,6 +153,27 @@ test('rejects a version with the wrong number of components', () => {
   assert.equal(result.ok, false);
   assert.match(result.message, /a\.json/);
 });
+
+test('rejects a version component with a leading zero', () => {
+  const result = computeVersionBump([
+    { label: 'a.json', value: '0.01.3' },
+    { label: 'b.json', value: '0.01.3' },
+  ]);
+
+  assert.equal(result.ok, false);
+  assert.match(result.message, /a\.json/);
+});
+
+test('rejects a patch number outside the safe integer range', () => {
+  const huge = String(Number.MAX_SAFE_INTEGER + 1);
+  const result = computeVersionBump([
+    { label: 'a.json', value: `0.0.${huge}` },
+    { label: 'b.json', value: `0.0.${huge}` },
+  ]);
+
+  assert.equal(result.ok, false);
+  assert.match(result.message, /a\.json/);
+});
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -157,24 +188,35 @@ module doesn't exist yet).
 Create `scripts/release-version.mjs`:
 
 ```js
-const VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
 
-function incrementPatch(version) {
-  const [major, minor, patch] = version.split('.').map(Number);
-  return `${major}.${minor}.${patch + 1}`;
+function parseVersion(value) {
+  if (typeof value !== 'string') return undefined;
+  const match = VERSION_PATTERN.exec(value);
+  if (!match) return undefined;
+
+  const [major, minor, patch] = match.slice(1).map(Number);
+  if (![major, minor, patch].every(Number.isSafeInteger)) return undefined;
+  // Rejects leading zeros (e.g. "01") and any precision loss from Number(),
+  // since a canonical value round-trips back to the original string.
+  if (`${major}.${minor}.${patch}` !== value) return undefined;
+
+  return { major, minor, patch };
 }
 
 export function computeVersionBump(entries) {
-  for (const { label, value } of entries) {
-    if (typeof value !== 'string' || !VERSION_PATTERN.test(value)) {
+  const parsed = entries.map((entry) => ({ ...entry, parsed: parseVersion(entry.value) }));
+
+  for (const entry of parsed) {
+    if (!entry.parsed) {
       return {
         ok: false,
-        message: `${label} has an invalid version: ${JSON.stringify(value)} (expected "x.y.z")`,
+        message: `${entry.label} has an invalid version: ${JSON.stringify(entry.value)} (expected "x.y.z")`,
       };
     }
   }
 
-  const [first, second] = entries;
+  const [first, second] = parsed;
   if (first.value !== second.value) {
     return {
       ok: false,
@@ -182,7 +224,8 @@ export function computeVersionBump(entries) {
     };
   }
 
-  return { ok: true, version: incrementPatch(first.value) };
+  const { major, minor, patch } = first.parsed;
+  return { ok: true, version: `${major}.${minor}.${patch + 1}` };
 }
 ```
 
@@ -190,7 +233,7 @@ export function computeVersionBump(entries) {
 
 Run: `node --test tests/release-version.test.mjs`
 
-Expected: PASS — 7 tests, 0 failures.
+Expected: PASS — 9 tests, 0 failures.
 
 - [ ] **Step 5: Lint**
 
@@ -198,10 +241,34 @@ Run: `pnpm lint`
 
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 6: Wire the test into `pnpm verify`**
+
+Modify `package.json`, inside the `"scripts"` block (currently
+`package.json:11-19`):
+
+```json
+  "scripts": {
+    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm test:release-version && pnpm verify:manifest-references",
+    "verify:manifest-references": "node scripts/verify-manifest-references.mjs",
+    "test:manifest-references": "node --test tests/manifest-references.test.mjs",
+    "test:release-version": "node --test tests/release-version.test.mjs",
+    "lint": "eslint .",
+    "lint:md": "markdownlint-cli2",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+```
+
+- [ ] **Step 7: Confirm the new script entry works**
+
+Run: `pnpm test:release-version`
+
+Expected: PASS — same 9 tests as Step 4, run through the new package script.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add scripts/release-version.mjs tests/release-version.test.mjs
+git add scripts/release-version.mjs tests/release-version.test.mjs package.json
 git commit -m "Add pure version-bump logic for the release script"
 ```
 
@@ -233,13 +300,13 @@ import { computeVersionBump } from './release-version.mjs';
 
 const PLUGIN_MANIFESTS = ['plugin/.claude-plugin/plugin.json', 'plugin/.codex-plugin/plugin.json'];
 
-function runCommand(cmd, args) {
-  const result = spawnSync(cmd, args, { stdio: 'inherit', shell: true });
+function runCommand(cmd, args, { shell = false } = {}) {
+  const result = spawnSync(cmd, args, { stdio: 'inherit', shell });
   return result.error === undefined && result.signal === null && result.status === 0;
 }
 
 function captureCommand(cmd, args) {
-  const result = spawnSync(cmd, args, { encoding: 'utf8', shell: true });
+  const result = spawnSync(cmd, args, { encoding: 'utf8' });
   if (result.error !== undefined || result.signal !== null || result.status !== 0) {
     if (result.stderr) process.stderr.write(result.stderr);
     return { ok: false };
@@ -248,7 +315,11 @@ function captureCommand(cmd, args) {
 }
 
 function verifyBuild() {
-  return runCommand('pnpm', ['verify']);
+  // pnpm resolves to a .cmd shim on Windows, which Node can only spawn via
+  // a shell. Its arguments never contain spaces, so this is safe — unlike
+  // git commands below, which must NOT use shell: true (see Global
+  // Constraints: it breaks multi-word arguments like the commit message).
+  return runCommand('pnpm', ['verify'], { shell: true });
 }
 
 function checkMainSynced() {
@@ -353,17 +424,33 @@ includes `verify:manifest-references` — that check already fails the whole
 script (via `verifyBuild()`'s early return) if either manifest has invalid
 JSON, before `bumpPatchVersion()` ever runs.
 
+**Why `runCommand`'s `git` calls never pass `shell: true`:** an earlier
+draft of this script used `shell: true` for every subprocess call,
+including `git commit -m "Bump version to 0.0.4"`. On Windows, `spawnSync`
+with `shell: true` joins the array arguments into a single command string
+without re-quoting entries that contain spaces, so the shell parsed that as
+`git commit -m Bump version to 0.0.4` — four separate arguments, which
+`git` rejected as unknown pathspecs (`version`, `to`, `0.0.4`) instead of
+treating them as one commit message. This was reproduced directly:
+`spawnSync('git', ['commit', '-m', 'Bump version to 0.0.4', ...], { shell:
+true })` fails with `pathspec 'version' did not match any file(s)`. `git`
+resolves as a real executable and works correctly with `shell: false`
+(the default), so only `verifyBuild()`'s call to `pnpm` — which needs a
+shell to run its Windows `.cmd` shim, and never has arguments containing
+spaces — opts into `shell: true`.
+
 - [ ] **Step 2: Add the `release` script to `package.json`**
 
-Modify `package.json`, inside the `"scripts"` block (currently
-`package.json:11-19`), adding one entry:
+Modify `package.json`, inside the `"scripts"` block (already updated by
+Task 1, Step 6):
 
 ```json
   "scripts": {
     "release": "node scripts/release.mjs",
-    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm verify:manifest-references",
+    "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm test:release-version && pnpm verify:manifest-references",
     "verify:manifest-references": "node scripts/verify-manifest-references.mjs",
     "test:manifest-references": "node --test tests/manifest-references.test.mjs",
+    "test:release-version": "node --test tests/release-version.test.mjs",
     "lint": "eslint .",
     "lint:md": "markdownlint-cli2",
     "format": "prettier --write .",
@@ -378,7 +465,7 @@ Run: `pnpm lint && pnpm format:check`
 Expected: no errors. If `format:check` fails on the new file, run
 `pnpm format` and re-check.
 
-- [ ] **Step 4: Manually verify the success path in a scratch repo**
+- [ ] **Step 4: Manually verify every path in a scratch repo**
 
 This script's job is to shell out to real `git`/`pnpm` commands, which
 isn't safely unit-testable (running it for real would commit and push in
@@ -386,15 +473,38 @@ whatever repo it's pointed at) — this matches the spec's decision not to
 add a broader integration test. Instead, verify it by hand against a
 disposable scratch repo, never against this repository itself.
 
-Run (from the honist-v repo root, using the Bash tool):
+Run the entire block below as **one** Bash tool call — the Bash tool does
+not preserve shell state (working directory aside) between separate calls,
+so splitting this across multiple calls would lose the `$WORK`/`$SCRATCH`
+variables set at the top. The script prints `PASS`/`FAIL` for each check
+and a final summary instead of relying on `set -e` (which would abort the
+whole walkthrough at the first *expected* failure, before its own
+assertion ran).
 
 ```bash
-set -e
 SCRATCH=$(mktemp -d)
 ORIGIN="$SCRATCH/origin.git"
 WORK="$SCRATCH/work"
+FAILURES=0
+
+check_eq() {
+  if [ "$1" = "$2" ]; then echo "PASS: $3"; else
+    echo "FAIL: $3 (expected [$2], got [$1])"; FAILURES=$((FAILURES + 1))
+  fi
+}
+check_ne() {
+  if [ "$1" != "$2" ]; then echo "PASS: $3"; else
+    echo "FAIL: $3 (expected different values, both [$1])"; FAILURES=$((FAILURES + 1))
+  fi
+}
+check_contains() {
+  if grep -q "$1" "$2"; then echo "PASS: $3"; else
+    echo "FAIL: $3 (pattern [$1] not found in $2)"; FAILURES=$((FAILURES + 1))
+  fi
+}
 
 git init --bare "$ORIGIN"
+git -C "$ORIGIN" symbolic-ref HEAD refs/heads/main
 git init "$WORK"
 cd "$WORK"
 git remote add origin "$ORIGIN"
@@ -409,71 +519,79 @@ cp "$OLDPWD/scripts/release-version.mjs" scripts/release-version.mjs
 printf '{"name":"scratch","private":true,"type":"module","scripts":{"verify":"node -e \\"process.exit(0)\\""}}\n' > package.json
 
 git add -A
-git commit -m "initial"
+git commit -q -m "initial"
 git branch -M main
-git push -u origin main
+git push -qu origin main
 
+# --- Success path ---
 node scripts/release.mjs
-echo "exit code: $?"
-cat plugin/.claude-plugin/plugin.json
-git log --oneline -3
-git log origin/main --oneline -1
-```
+check_eq "$?" "0" "success path exits 0"
+check_contains '"version": "0.0.4"' plugin/.claude-plugin/plugin.json "claude plugin.json bumped to 0.0.4"
+check_contains '"version": "0.0.4"' plugin/.codex-plugin/plugin.json "codex plugin.json bumped to 0.0.4"
+check_eq "$(git rev-parse HEAD)" "$(git rev-parse origin/main)" "local main matches origin/main after push"
 
-Expected:
+# --- Dirty worktree ---
+echo dirty >> untracked-scratch.txt
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "dirty worktree exits 1"
+check_contains "uncommitted changes" /tmp/release-stderr.txt "dirty worktree message printed"
+rm untracked-scratch.txt
 
-- Exit code `0`.
-- Both `plugin.json` files now show `"version": "0.0.4"`.
-- The local `main` and `origin/main` both point at the new "Bump version to
-  0.0.4" commit (the last two `git log` lines show the same commit).
-- Final stdout line: `Released 0.0.4 and pushed to origin/main.`
+# --- Wrong branch ---
+git checkout -q -b other
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "wrong branch exits 1"
+check_contains 'not "main"' /tmp/release-stderr.txt "wrong branch message printed"
+git checkout -q main
 
-- [ ] **Step 5: Manually verify the failure paths in the same scratch repo**
-
-Continue in the same `$WORK` directory (Bash tool, same session so `$WORK`
-and `$SCRATCH` are still set):
-
-```bash
-cd "$WORK"
-
-# Dirty worktree
-echo dirty >> README-scratch.md
-node scripts/release.mjs; echo "exit code: $?"
-# Expected: exit code 1, stderr "worktree has uncommitted changes — commit or stash first."
-rm README-scratch.md
-
-# Wrong branch
-git checkout -b other
-node scripts/release.mjs; echo "exit code: $?"
-# Expected: exit code 1, stderr mentions branch "other", not "main"
-git checkout main
-
-# Version mismatch
+# --- Version mismatch ---
 sed -i 's/0.0.4/0.0.5/' plugin/.claude-plugin/plugin.json
-git add -A && git commit -m "mismatch"
-node scripts/release.mjs; echo "exit code: $?"
-# Expected: exit code 1, stderr shows both versions disagreeing (0.0.5 vs 0.0.4)
-git reset --hard HEAD~1
+git commit -aqm "mismatch"
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "version mismatch exits 1"
+check_contains "0.0.5" /tmp/release-stderr.txt "mismatch message shows the offending version"
+git reset -q --hard HEAD~1
 
-# Behind origin
-git commit --allow-empty -m "diverging local commit"
+# --- Behind origin (origin has a commit local hasn't fetched) ---
 CLONE="$SCRATCH/other-clone"
-git clone "$ORIGIN" "$CLONE"
-(cd "$CLONE" && git commit --allow-empty -m "someone else's push" && git push)
-node scripts/release.mjs; echo "exit code: $?"
-# Expected: exit code 1, stderr "main has diverged from origin/main — reconcile first."
-# (both sides have a commit the other lacks, since the local empty commit
-# and the "someone else's push" commit diverged from the same point)
+git clone -q "$ORIGIN" "$CLONE"
+(cd "$CLONE" && git config user.email t@e.com && git config user.name T \
+  && git commit -q --allow-empty -m "someone else's push" && git push -q)
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "behind origin exits 1"
+check_contains "behind origin/main" /tmp/release-stderr.txt "behind message printed"
+
+# --- Diverged (both sides have a commit the other lacks) ---
+git commit -q --allow-empty -m "local-only commit"
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "diverged exits 1"
+check_contains "diverged from origin/main" /tmp/release-stderr.txt "diverged message printed"
+git reset -q --hard origin/main
+
+# --- Push failure (everything else checks out, but the remote rejects) ---
+mkdir -p "$ORIGIN/hooks"
+printf '#!/bin/sh\nexit 1\n' > "$ORIGIN/hooks/pre-receive"
+chmod +x "$ORIGIN/hooks/pre-receive"
+node scripts/release.mjs 2> /tmp/release-stderr.txt
+check_eq "$?" "1" "push failure exits 1"
+check_contains "push failed" /tmp/release-stderr.txt "push-failure warning printed"
+check_contains '"version": "0.0.5"' plugin/.claude-plugin/plugin.json "version bumped locally despite push failure"
+check_ne "$(git rev-parse HEAD)" "$(git rev-parse origin/main)" "local commit was not pushed"
+rm "$ORIGIN/hooks/pre-receive"
+
+echo "----"
+if [ "$FAILURES" -eq 0 ]; then echo "ALL CHECKS PASSED"; else echo "$FAILURES CHECK(S) FAILED"; fi
 
 cd /
 rm -rf "$SCRATCH"
 ```
 
-Confirm each expected message and exit code matches before proceeding —
-if any diverge, fix `scripts/release.mjs` and re-run Step 4 and Step 5
-from the top with a fresh scratch repo.
+Expected: every line reads `PASS: ...`, and the summary reads
+`ALL CHECKS PASSED`. If any line reads `FAIL: ...`, fix `scripts/release.mjs`
+and re-run this entire step from the top with a fresh scratch repo (state
+from a failed run should not be reused).
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add scripts/release.mjs package.json
@@ -488,7 +606,7 @@ git commit -m "Add pnpm release script"
 
 - Modify: `README.md` (the scripts table, currently `README.md:57-67`)
 
-- [ ] **Step 1: Add `pnpm release` to the README scripts table**
+- [ ] **Step 1: Add the new scripts to the README scripts table**
 
 Modify `README.md`, changing:
 
@@ -510,11 +628,12 @@ to:
 ```markdown
 Other useful scripts:
 
-| Script                            | Description                             |
-| --------------------------------- | --------------------------------------- |
+| Script                            | Description                                   |
+| --------------------------------- | ---------------------------------------------- |
 | `pnpm release`                    | Verify, bump the patch version, and push main |
 | `pnpm verify:manifest-references` | Check references in committed manifests |
 | `pnpm test:manifest-references`   | Test manifest-reference verification    |
+| `pnpm test:release-version`       | Test the release script's version-bump logic |
 | `pnpm lint`                       | Run ESLint                              |
 | `pnpm lint:md`                    | Lint Markdown with markdownlint         |
 | `pnpm format`                     | Format all files with Prettier          |
@@ -533,7 +652,7 @@ run `pnpm format` and re-check.
 Run: `pnpm verify`
 
 Expected: all stages pass (format check, lint, markdown lint, manifest
-reference test, manifest reference verify).
+reference test, release-version test, manifest reference verify).
 
 - [ ] **Step 4: Commit**
 
