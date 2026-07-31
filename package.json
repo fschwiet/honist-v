@@ -9,6 +9,7 @@
   },
   "packageManager": "pnpm@11.3.0",
   "scripts": {
+    "release": "node scripts/release.mjs",
     "verify": "pnpm format:check && pnpm lint && pnpm lint:md && pnpm test:manifest-references && pnpm test:release-version && pnpm verify:manifest-references",
     "verify:manifest-references": "node scripts/verify-manifest-references.mjs",
     "test:manifest-references": "node --test tests/manifest-references.test.mjs",
