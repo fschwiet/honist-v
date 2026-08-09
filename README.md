@@ -4,29 +4,27 @@ A Claude Code and Codex plugin,
 
 - imported from [Matt Pocock's Skills](https://www.github.com/mattpocock/skills):
   - the engineering and productivity skills
-  - modified to use prompt-a-peer[-medium/-high] for reviews in grilling-session, to-spec and to-tickets.
+  - modified to use `prompt-a-peer-low`, `prompt-a-peer-medium`, or `prompt-a-peer-high` for reviews in grilling-session, to-spec, and to-tickets.
 - imported from [Jesse Vincent's Superpowers](https://github.com/obra/superpowers):
   - skills: brainstorming, writing-plans, executing-plans, test-driven-development
   - removed insistance on not working in main
   - added second review by codex
   - skills are user invoked only
 - original skills:
-  - `prompt-a-peer-medium` / `prompt-a-peer-high`: an agent-dependent skill that lets other skills offload a prompt to a peer agent
+  - `prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high`: shared skills that let other skills offload a prompt to a peer agent
 - original hooks:
   - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
   - a `PreToolUse` hook (Claude only) blocks PowerShell here-string syntax (`@'...'@`) in the Bash tool — see below
 
 ## Shared skills
 
-The shared skills live in `skills/` and are loaded by both agents. Each variant lives outside `skills/` and is wired per agent in its manifest: Claude auto-discovers `skills/` and the `.claude-plugin` manifest supplements it with `skills-claude/prompt-a-peer`; the `.codex-plugin` manifest lists both `skills/` and `skills-codex/` (Codex loads only the paths its manifest names).
+The shared skills live in `skills/` and are loaded by both agents. Claude auto-discovers `skills/`; the `.codex-plugin` manifest lists both `skills/` and `skills-codex/` (Codex loads only the paths its manifest names). The per-host `skills-codex/` tree contains `sniff-coding-standards`.
 
-## Agent specific skills
+## Prompt a peer
 
-### Prompt a peer medium / high
+`prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high` share one implementation across Claude and Codex hosts. Every host shells out to the `pi` CLI using the `openai-codex` provider, with the level selecting `gpt-5.6-luna`, `gpt-5.6-terra`, or `gpt-5.6-sol`, respectively. This diverts peer-review cost away from the host agent and provides a fresh context window.
 
-`prompt-a-peer-medium` and `prompt-a-peer-high` are both skills backed by separate implementations for claude and codex, so any skill using them routes to whatever fits the running agent. On claude, they shell out to codex. On codex, they use a subagent. This lets us divert cost from claude to codex, and is used when we want a fresh context window.
-
-Like the other skills, both set `disable-model-invocation: true` — they are invoked by name, not auto-fired by the model. The plan/spec review flows reach them by naming the skill.
+The skills remain model-invocable so plan, spec, and review flows can reach them by name.
 
 ## Bash here-string guard
 

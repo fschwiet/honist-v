@@ -1,14 +1,9 @@
 #!/usr/bin/env bash
 # Unit tests for assertions.sh.
 #
-# These run against a recorded transcript fixture (fixtures/claude-medium.jsonl)
-# so the success-detection logic can be validated instantly, offline, and for
-# free -- unlike test.sh, which drives live, paid claude/codex agent loops.
-#
-# The fixture is a real "--claude --medium" run in which the peer *misreported*
-# its own model ("gpt-5.6-sol") even though the codex CLI banner shows the
-# correct one ("gpt-5.6-terra"). That is exactly the case that fooled the old
-# final-answer check, so it is the case these assertions must get right.
+# These run against a recorded Claude transcript and its corresponding pi
+# session so the success-detection logic can be validated instantly, offline,
+# and for free -- unlike test.sh, which drives live, paid agent loops.
 #
 # Run: bash tests/prompt-a-peer/assertions.test.sh   (or ./tests/run.ps1 from pwsh)
 set -uo pipefail
@@ -22,12 +17,27 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 TRANSCRIPT="$TMP_DIR/claude-medium.jsonl"
 cp "$SCRIPT_DIR/fixtures/claude-medium.jsonl" "$TRANSCRIPT"
+PI_SESSION="$TMP_DIR/pi-session.jsonl"
+cp "$SCRIPT_DIR/fixtures/claude-medium-pi-session.jsonl" "$PI_SESSION"
+WRONG_MODEL_SESSION="$TMP_DIR/wrong-model-pi-session.jsonl"
+sed 's/"modelId":"gpt-5.6-terra"/"modelId":"gpt-5.6-sol"/' \
+  "$PI_SESSION" > "$WRONG_MODEL_SESSION"
+ROUND_TRIP_MARKER="PROMPT_A_PEER_ROUND_TRIP_OK"
+CODEX_HOST_TRANSCRIPT="$TMP_DIR/codex-host.jsonl"
+printf '%s\n' \
+  'Warning: a host diagnostic may precede the JSONL stream' \
+  '{"type":"item.completed","item":{"type":"agent_message","text":"PROMPT_A_PEER_ROUND_TRIP_OK"}}' \
+  > "$CODEX_HOST_TRANSCRIPT"
+MISSING_MARKER_TRANSCRIPT="$TMP_DIR/missing-marker.jsonl"
+printf '%s\n' \
+  '{"type":"user","message":{"content":[{"type":"text","text":"Prompt includes PROMPT_A_PEER_ROUND_TRIP_OK"}]}}' \
+  '{"type":"result","subtype":"success","result":"Peer call was skipped"}' \
+  > "$MISSING_MARKER_TRANSCRIPT"
 
-# The fixture was recorded with this repo checked out at C:\code\honist-v, so
-# pin the expected root to what is baked into the fixture -- keeps this unit
-# test independent of where the repo happens to be checked out now.
+# Pin the expected root to what is baked into the fixture data so this unit
+# test stays independent of where the repo happens to be checked out now.
 FIXTURE_REPO_ROOT="C:/code/honist-v"
-SKILL_RELPATH="plugin/skills-claude/prompt-a-peer-medium"
+SKILL_RELPATH="plugin/skills/prompt-a-peer-medium"
 EXPECTED_MODEL="gpt-5.6-terra"
 
 PASS=0
@@ -65,30 +75,44 @@ check_eq "git bash path"       "/c/code/honist-v" "$(normalize_path '/c/code/hon
 check_eq "wsl mount path"      "/c/code/honist-v" "$(normalize_path '/mnt/c/code/honist-v')"
 
 echo "extractors:"
+check_eq "low skill uses medium thinking" "medium" \
+  "$(grep -Eo -- '--thinking [a-z]+' "$SCRIPT_DIR/../../plugin/skills/prompt-a-peer-low/SKILL.md" | head -n 1 | cut -d ' ' -f 2)"
 check_eq "skill base dir" \
-  'C:\code\honist-v\plugin\skills-claude\prompt-a-peer-medium' \
+  'C:\code\honist-v\plugin\skills\prompt-a-peer-medium' \
   "$(extract_skill_base_dir "$TRANSCRIPT")"
-check_eq "codex banner model" "$EXPECTED_MODEL" "$(extract_codex_banner_model "$TRANSCRIPT")"
-
-# Sanity: this is the value the old check trusted, and it is the WRONG model --
-# proving the final answer is unreliable and must not be what we assert on.
-check_eq "peer's (unreliable) final answer" \
-  "gpt-5.6-sol" \
-  "$(tail -n 1 "$TRANSCRIPT" | jq -r '.structured_output.model // empty')"
+check_eq "pi session model" "$EXPECTED_MODEL" "$(extract_pi_session_model "$PI_SESSION")"
+check_eq "claude final output" "$ROUND_TRIP_MARKER" \
+  "$(extract_host_final_output "$TRANSCRIPT" claude)"
+check_eq "codex final output" "$ROUND_TRIP_MARKER" \
+  "$(extract_host_final_output "$CODEX_HOST_TRANSCRIPT" codex)"
 
 echo "verify_claude_success:"
 check_rc "passes on a good run" 0 \
-  verify_claude_success "$TRANSCRIPT" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" "$EXPECTED_MODEL"
+  verify_claude_success "$TRANSCRIPT" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" \
+    "$EXPECTED_MODEL" "$PI_SESSION" "$ROUND_TRIP_MARKER"
 check_rc "fails on wrong expected model" 1 \
-  verify_claude_success "$TRANSCRIPT" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" "gpt-5.6-sol"
+  verify_claude_success "$TRANSCRIPT" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" \
+    "gpt-5.6-sol" "$PI_SESSION" "$ROUND_TRIP_MARKER"
 check_rc "fails when skill loaded from a different root" 1 \
-  verify_claude_success "$TRANSCRIPT" "/some/other/checkout" "$SKILL_RELPATH" "$EXPECTED_MODEL"
+  verify_claude_success "$TRANSCRIPT" "/some/other/checkout" "$SKILL_RELPATH" \
+    "$EXPECTED_MODEL" "$PI_SESSION" "$ROUND_TRIP_MARKER"
 
 # A transcript with neither evidence event must fail (not spuriously pass).
 EMPTY="$TMP_DIR/empty.jsonl"
 : > "$EMPTY"
 check_rc "fails on an empty transcript" 1 \
-  verify_claude_success "$EMPTY" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" "$EXPECTED_MODEL"
+  verify_claude_success "$EMPTY" "$FIXTURE_REPO_ROOT" "$SKILL_RELPATH" \
+    "$EXPECTED_MODEL" "$PI_SESSION" "$ROUND_TRIP_MARKER"
+
+echo "verify_success:"
+check_rc "passes for a claude host" 0 \
+  verify_success "$PI_SESSION" "$TRANSCRIPT" claude "$EXPECTED_MODEL" "$ROUND_TRIP_MARKER"
+check_rc "passes for a codex host" 0 \
+  verify_success "$PI_SESSION" "$CODEX_HOST_TRANSCRIPT" codex "$EXPECTED_MODEL" "$ROUND_TRIP_MARKER"
+check_rc "fails on the wrong pi model" 1 \
+  verify_success "$WRONG_MODEL_SESSION" "$TRANSCRIPT" claude "$EXPECTED_MODEL" "$ROUND_TRIP_MARKER"
+check_rc "fails when only the prompt contains the marker" 1 \
+  verify_success "$PI_SESSION" "$MISSING_MARKER_TRANSCRIPT" claude "$EXPECTED_MODEL" "$ROUND_TRIP_MARKER"
 
 echo
 echo "$PASS passed, $FAIL failed"

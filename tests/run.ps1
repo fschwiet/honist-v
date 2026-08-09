@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 # Thin wrapper so the prompt-a-peer tests can be run from PowerShell under Git Bash.
 # Forwards any arguments straight through to tests/prompt-a-peer/test.sh
-# (see that file for the supported flags: --medium --high --claude --codex).
+# (see that file for the supported flags: --low --medium --high --claude --codex).
 #
 # A leading `--` separator is optional and stripped, so both of these work:
 #   ./tests/run.ps1 -- --claude --medium
