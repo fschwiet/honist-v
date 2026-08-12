@@ -149,23 +149,6 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just commit the fixes and move on. If you find a spec requirement with no task, add the task and in this case re-review.
 
-## Peer Review
-
-After the self-review passes and changes have been committed, use the **prompt-a-peer-medium** skill to have a peer review the plan; include the spec for reference. If a peer reviewed an earlier version of the plan, ask it to review the changes since.
-
-- For feedback that points to a clear issue with a certain fix go ahead and commit the fix inline.
-- Tell me about feedback that did not indicate a clear issue and is being discarded.
-- Go to **Propose 2-3 fixes** to explore fixes for clear issues without a certain fix, otherwise skip to **Execution Handoff**.
-
-**Propose 2-3 fixes** For each clear issue without a certain fix:
-
-- Propose 2-3 different fixes with their trade-offs.
-- Present options conversationally with your recommendation and reasoning.
-- Lead with your recommended option and explain why.
-- Always indicate the tradeoffs of each approach. If there is no differentiation in the tradeoffs then also explain why the solution to the fix is uncertain.
-
-Fix and commit issues inline. If there were substantial changes made return to **Self-Review** otherwise continue to **Execution Handoff**.
-
 ## Execution Handoff
 
 After the plan is saved and reviewed, let me decide what to do next:
