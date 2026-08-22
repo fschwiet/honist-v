@@ -6,6 +6,7 @@
     "pnpm-lock.yaml",
     "plugin/skills/mattpocock-skills/engineering",
     "plugin/skills/mattpocock-skills/productivity",
+    "plugin/skills/oh-my-openagent",
   ],
 
   "config": {
