@@ -5,7 +5,8 @@
   "skills": [
     "./skills/obra-superpowers/",
     "./skills/mattpocock-skills/engineering/",
-    "./skills/mattpocock-skills/productivity/"
+    "./skills/mattpocock-skills/productivity/",
+    "./skills/oh-my-openagent/"
   ],
   "hooks": "./claude-only-hooks/hooks.json"
 }
