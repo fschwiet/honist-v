@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Writing Plans'
+  short_description: 'Turn a spec into a plan'
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,3 @@
+interface:
+  display_name: 'Prompt A Peer Medium'
+  short_description: 'Prompt a peer with a balanced model'

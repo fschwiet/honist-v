@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Brainstorming'
+  short_description: 'Interview to develop a spec or plan'
+policy:
+  allow_implicit_invocation: false
