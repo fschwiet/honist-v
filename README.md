@@ -8,10 +8,10 @@ A Claude Code and Codex plugin,
 - imported from [Jesse Vincent's Superpowers](https://github.com/obra/superpowers):
   - skills: brainstorming, writing-plans, executing-plans, test-driven-development
   - removed insistance on not working in main
-  - added second review by codex
+  - added second review by pi
   - skills are user invoked only
 - original skills:
-  - `prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high`: shared skills that let other skills offload a prompt to a peer agent
+  - `prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high`: shared skills that let other skills offload a prompt to a peer agent (via pi)
 - original hooks:
   - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
   - a `PreToolUse` hook (Claude only) blocks PowerShell here-string syntax (`@'...'@`) in the Bash tool — see below
