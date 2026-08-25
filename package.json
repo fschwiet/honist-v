@@ -1,7 +1,15 @@
 {
   "name": "honist-v",
   "version": "0.0.1",
-  "description": "A Claude Code plugin",
+  "description": "A Claude Code, Codex, and Pi plugin/package",
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "skills": [
+      "./plugin/skills"
+    ]
+  },
   "type": "module",
   "private": true,
   "engines": {

@@ -1,6 +1,6 @@
 # Honist-V
 
-A Claude Code and Codex plugin,
+A Claude Code, Codex and Pi plugin/package,
 
 - imported from [Matt Pocock's Skills](https://www.github.com/mattpocock/skills):
   - the engineering and productivity skills
