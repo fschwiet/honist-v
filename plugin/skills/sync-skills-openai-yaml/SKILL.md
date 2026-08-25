@@ -10,7 +10,7 @@ Claude Code reads a skill's invocation policy from `SKILL.md` frontmatter (`disa
 
 ## Process
 
-1. **Inventory.** Find every `SKILL.md` under the project that isn't gitignored (`git ls-files` / `git check-ignore`, not a hardcoded exclude list — this is what actually keeps caches, `node_modules`, and similar out without needing to know their paths in advance). Outside a git repo, fall back to excluding `node_modules` and `.git`. For each, read the frontmatter: `name`, `description`, `disable-model-invocation`.
+1. **Inventory.** Find every `SKILL.md` under the project that isn't gitignored, not a hardcoded exclude list — this is what actually keeps caches, `node_modules`, and similar out without needing to know their paths in advance. `git ls-files` alone only covers tracked files and misses a skill that moved to or was created at a new, not-yet-added path; run both `git ls-files` (tracked) and `git ls-files --others --exclude-standard` (untracked but not gitignored) and take the union. Outside a git repo, fall back to excluding `node_modules` and `.git`. For each, read the frontmatter: `name`, `description`, `disable-model-invocation`.
 
    Completion criterion: every `SKILL.md` path in the project is listed with those three values.
 
