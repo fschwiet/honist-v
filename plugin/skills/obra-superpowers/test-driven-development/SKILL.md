@@ -15,14 +15,14 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 ## When to Use
 
-Always:
+**Always:**
 
 - New features
 - Bug fixes
 - Refactoring
 - Behavior changes
 
-Exceptions (ask your human partner):
+**Exceptions (ask your human partner):**
 
 - Throwaway prototypes
 - Generated code
@@ -32,7 +32,9 @@ Thinking "skip TDD just this once"? Stop. That's rationalization.
 
 ## The Iron Law
 
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST!
+```
+NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+```
 
 Write code before the test? Delete it. Start over.
 
@@ -74,7 +76,6 @@ digraph tdd_cycle {
 Write one minimal test showing what should happen.
 
 <Good>
-
 ```typescript
 test('retries failed operations 3 times', async () => {
   let attempts = 0;
@@ -84,28 +85,25 @@ test('retries failed operations 3 times', async () => {
     return 'success';
   };
 
-  const result = await retryOperation(operation);
+const result = await retryOperation(operation);
 
-  expect(result).toBe('success');
-  expect(attempts).toBe(3);
-});
-```
+expect(result).toBe('success'); expect(attempts).toBe(3); });
 
-Clear name, tests real behavior, one thing </Good>
+````
+Clear name, tests real behavior, one thing
+</Good>
 
 <Bad>
-
 ```typescript
 test('retry works', async () => {
-  const mock = jest
-    .fn()
+  const mock = jest.fn()
     .mockRejectedValueOnce(new Error())
     .mockRejectedValueOnce(new Error())
     .mockResolvedValueOnce('success');
   await retryOperation(mock);
   expect(mock).toHaveBeenCalledTimes(3);
 });
-```
+````
 
 Vague name, tests mock not code </Bad>
 
@@ -211,73 +209,26 @@ Next failing test for next feature.
 | **Clear** | Name describes behavior | `test('test1')` |
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
 
-## Why Order Matters
+When writing or changing any test, read [writing-good-tests.md](writing-good-tests.md) for the rules that keep tests honest:
 
-Antipattern: "I'll write tests after to verify it works"
-
-Tests written after code pass immediately. Passing immediately proves nothing:
-
-- Might test wrong thing
-- Might test implementation, not behavior
-- Might miss edge cases you forgot
-- You never saw it catch the bug
-
-Test-first forces you to see the test fail, proving it actually tests something.
-
-Antipattern: "I already manually tested all the edge cases"
-
-Manual testing is ad-hoc. You think you tested everything but:
-
-- No record of what you tested
-- Can't re-run when code changes
-- Easy to forget cases under pressure
-- "It worked when I tried it" ≠ comprehensive
-
-Automated tests are systematic. They run the same way every time.
-
-Antipattern: "Deleting X hours of work is wasteful"
-
-Sunk cost fallacy. The time is already gone. Your choice now:
-
-- Delete and rewrite with TDD (X more hours, high confidence)
-- Keep it and add tests after (30 min, low confidence, likely bugs)
-
-The "waste" is keeping code you can't trust. Working code without real tests is technical debt.
-
-Antipattern: "TDD is dogmatic, being pragmatic means adapting"
-
-TDD IS pragmatic:
-
-- Finds bugs before commit (faster than debugging after)
-- Prevents regressions (tests catch breaks immediately)
-- Documents behavior (tests show how to use code)
-- Enables refactoring (change freely, tests catch breaks)
-
-"Pragmatic" shortcuts = debugging in production = slower.
-
-Antipattern: "Tests after achieve the same goals - it's spirit not ritual"
-
-No. Tests-after answer "What does this do?" Tests-first answer "What should this do?"
-
-Tests-after are biased by your implementation. You test what you built, not what's required. You verify remembered edge cases, not discovered ones.
-
-Tests-first force edge case discovery before implementing. Tests-after verify you remembered everything (you didn't).
-
-30 minutes of tests after ≠ TDD. You get coverage, lose proof tests work.
+- Name the production change that would make the test fail — before writing it
+- Assert on real behavior, never on mock behavior
+- Keep test-only code in test utilities, out of production classes
+- Understand a dependency's side effects before mocking it
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 | --- | --- |
 | "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
-| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
+| "I'll test after" | Tests written after pass immediately — which proves nothing. They may test the wrong thing, test the implementation instead of the behavior, or miss the edge case you forgot. You never watched it fail, so you never proved it can catch the bug. Test-first forces that failure. |
+| "Tests after achieve same goals (spirit not ritual)" | Tests-after answer "what does this do?"; tests-first answer "what should this do?" Tests written after are biased by the code you already wrote — you verify the cases you remembered, not the ones you'd have discovered. Coverage without proof the tests work. |
+| "Already manually tested" | Manual testing is ad-hoc: no record of what you covered, no way to re-run it when the code changes, easy to forget cases under pressure. "Worked when I tried it" ≠ comprehensive. Automated tests run the same way every time. |
+| "Deleting X hours is wasteful" | Sunk cost fallacy — that time is already spent either way. The real choice: rewrite with TDD (high confidence) vs. keep it and bolt tests on after (low confidence, likely bugs). Keeping code you can't trust is the waste. |
 | "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
 | "Need to explore first" | Fine. Throw away exploration, start with TDD. |
 | "Test hard = design unclear" | Listen to test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
+| "TDD will slow me down" | TDD IS the pragmatic path: catches bugs before commit, prevents regressions, lets you refactor without fear. "Pragmatic" shortcuts mean debugging in production — slower, not faster. |
 | "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
 
@@ -303,7 +254,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 
 **Bug:** Empty email accepted
 
-### Step 1 - RED
+**RED**
 
 ```typescript
 test('rejects empty email', async () => {
@@ -312,14 +263,14 @@ test('rejects empty email', async () => {
 });
 ```
 
-### Step 2 - Verify RED
+**Verify RED**
 
 ```bash
 $ npm test
 FAIL: expected 'Email required', got undefined
 ```
 
-### Step 3 - GREEN
+**GREEN**
 
 ```typescript
 function submitForm(data: FormData) {
@@ -330,16 +281,14 @@ function submitForm(data: FormData) {
 }
 ```
 
-### Step 4 - Verify GREEN
+**Verify GREEN**
 
 ```bash
 $ npm test
 PASS
 ```
 
-### Step 5 - REFACTOR
-
-Extract validation for multiple fields if needed.
+**REFACTOR** Extract validation for multiple fields if needed.
 
 ## Verification Checklist
 
@@ -371,19 +320,11 @@ Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix 
 
 Never fix bugs without a test.
 
-## Testing Anti-Patterns
-
-When adding mocks or test utilities, read [testing-anti-patterns.md](testing-anti-patterns.md) to avoid common pitfalls:
-
-- Testing mock behavior instead of real behavior
-- Adding test-only methods to production classes
-- Mocking without understanding dependencies
-
 ## Final Rule
 
-<final-rule>
+```
 Production code → test exists and failed first
 Otherwise → not TDD
-</final-rule>
+```
 
 No exceptions without your human partner's permission.
