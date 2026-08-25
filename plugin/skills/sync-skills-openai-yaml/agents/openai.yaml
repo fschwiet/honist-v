@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Sync Skills OpenAI YAML'
+  short_description: "Sync each skill's Codex manifest"
+policy:
+  allow_implicit_invocation: false
