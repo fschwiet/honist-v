@@ -27,4 +27,4 @@ Claude Code reads a skill's invocation policy from `SKILL.md` frontmatter (`disa
 
    Completion criterion: every `SKILL.md` in the inventory has a sibling `agents/openai.yaml` whose `interface` and `policy` match Step 2's target state.
 
-4. **Report.** Show the user a table: skill → created / fixed (what changed) / already correct. Flag any skill that lives inside a directory synced from an upstream source (e.g. a vendored `obra/superpowers`-style import) — a future upstream sync can overwrite the file this step just wrote or fixed, so it's worth a note even though it's not a reason to skip the fix now.
+4. **Report.** Show the user a table: skill → created / fixed (what changed) / already correct.
