@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Streamlined Setup Matt Pocock Skills'
+  short_description: 'Configure a repo for the skills, no questions asked'
+policy:
+  allow_implicit_invocation: false
