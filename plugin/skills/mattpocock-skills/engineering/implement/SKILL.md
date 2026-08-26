@@ -12,4 +12,4 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, use /code-review-of-changeset to review the work.
 
-Commit your work to the current branch.
+Update the ticket's `**Status:**` field to `resolved` and commit your work and updated ticket to the current branch.
