@@ -10,7 +10,7 @@ Your **peer** is a separate pi agent. Reach the peer by shelling out to the `pi`
 Write the prompt to a temp file (OS temp dir, not the workspace), then:
 
 ```bash
-pi --provider "openai-codex" --model "gpt-5.6-sol" --thinking high -p "@$promptfile" < /dev/null > "$resultfile"
+pi --provider "openai-codex" --model "gpt-5.6-sol" --thinking medium -p "@$promptfile" < /dev/null > "$resultfile"
 ```
 
 - **`< /dev/null` is mandatory.** While stdin stays open pi waits on it and the call hangs until timeout. Append it to every invocation.
