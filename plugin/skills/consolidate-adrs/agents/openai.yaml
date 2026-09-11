@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Consolidate ADRs'
+  short_description: 'Reconcile ADRs with the current repository'
+policy:
+  allow_implicit_invocation: false
