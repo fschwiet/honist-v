@@ -36,6 +36,8 @@ Completion criterion: the repository's complete domain vocabulary and current de
 
 Search every surviving repository file for references to the retirement directories or their files. Account for direct paths, relative links, directory-level links, and references identifiable only by a target filename. Inspect candidates rather than treating text-search matches as findings.
 
+Classify a reference by its purpose. A **maintenance reference** defines where or how provisional files are created, organized, found, read, or updated; the path is part of the surviving workflow rather than a dependency on the current contents. Preserve maintenance references when that workflow remains current, even when they name a retirement directory. For example, an issue-tracker guide may continue to define `docs/matt-pocock/` as its storage location. Treat a reference that expects information from a particular manifest file as a dependency to remove.
+
 For every real reference, verify the information its consumer still needs against current code, configuration, tests, and surviving documentation. Propose the smallest change that lets the consumer stand on its own:
 
 - In code comments and code-facing documentation, retain only the non-obvious reason the code behaves as it does.
@@ -44,19 +46,19 @@ For every real reference, verify the information its consumer still needs agains
 - Put a design decision in an ADR only when it passes the domain-modeling skill's ADR test. Preserve the trade-off and rationale, not project chronology.
 - Remove a reference without replacement when its consumer needs none of the referenced information.
 
-For each proposed change, record the surviving file affected, the reference being removed, the exact replacement or deletion, its authoritative evidence, and why that destination is appropriate. Every found reference must map to a proposed change or a documented no-change conclusion.
+For each proposed change, record the surviving file affected, the reference being removed, the exact replacement or deletion, its authoritative evidence, and why that destination is appropriate. Every found reference must map to a proposed change or a documented no-change conclusion identifying a current maintenance reference.
 
-Completion criterion: there is an evidence-backed disposition for every reference from a surviving file into the retirement manifest.
+Completion criterion: there is an evidence-backed disposition for every reference from a surviving file to a retirement path, and every retained reference is a current maintenance reference.
 
 ## Agree on and commit the cleanup
 
-If no surviving file references the manifest and there are no changes to make, tell the user this phase is a no-op. Create no empty commit and continue to the retirement phase.
+If no surviving file depends on the manifest and every path reference is a current maintenance reference, tell the user this phase is a no-op. Create no empty commit and continue to the retirement phase.
 
 Otherwise, read and follow the complete [`grilling` skill](../mattpocock-skills/productivity/grilling/SKILL.md). Treat the proposed cleanup as its design tree. Explain the evidence and recommend a resolution for each change; investigate facts yourself and reserve questions for decisions. Editing begins only after the user confirms shared understanding for the complete cleanup set.
 
-Apply exactly the approved set without modifying, renaming, or deleting any file in the retirement manifest. Re-run the reference search and relevant repository checks, then review the diff. Stage only the approved cleanup changes and commit them using the repository's commit conventions. Do not advance while any surviving reference into the retirement manifest remains; revise the proposal with the user instead.
+Apply exactly the approved set without modifying, renaming, or deleting any file in the retirement manifest. Re-run the reference search and relevant repository checks, then review the diff. Stage only the approved cleanup changes and commit them using the repository's commit conventions. Advance only when every surviving path reference is a verified maintenance reference; otherwise revise the proposal with the user.
 
-Completion criterion: either the phase was a verified no-op, or a focused cleanup commit exists and no surviving repository file refers to a file in the retirement manifest.
+Completion criterion: either the phase was a verified no-op, or a focused cleanup commit exists and every surviving reference to a retirement path is a current maintenance reference.
 
 Only after meeting that criterion, review every file in the retirement manifest in the context of the complete manifest, the repository's `CONTEXT.md` files, its current ADRs, and the `domain-modeling` skill.
 
@@ -91,7 +93,7 @@ Verify that:
 
 - each changed or created ADR follows the domain-modeling format and agrees with current code and surviving documentation;
 - each changed `CONTEXT.md` follows the domain-modeling format and contains domain language rather than implementation detail;
-- no changes refer retired files;
+- no surviving reference depends on a retired manifest file, and every retained retirement-path reference is a current maintenance reference;
 - the three retirement directories contain no files; and
 - the diff contains only approved durable-context changes and manifest deletions.
 
