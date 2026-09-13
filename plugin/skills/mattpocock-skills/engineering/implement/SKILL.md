@@ -8,9 +8,9 @@ Remember the starting commit so it can be passed as the starting point of a late
 
 Orchestrate the implementation of the tickets given by the user. Have an agent implement the next unblocked ticket one at a time until all tickets are implemented.
 
-The agent should use /tdd where possible and check their work with stages of the verification pipeline relevant to their work (including at least formatting, linting and testing as outlined in the project's context). Before returning the agent should commit their work.
+The agent should use /tdd where possible and check their work with stages of the verification pipeline relevant to their work (including at least formatting, linting and testing as outlined in the project's context). Before returning the agent should update the ticket with `Status: ready-for-review` commit their work .
 
-Once all tickets have been resolved run the full verification pipeline and address any issues it raises.
+Once all tickets have been committed as ready-for-review run the full verification pipeline and address any issues it raises.
 
 When the full verification pipeline passes use /code-review-of-changeset to review the work, indicating the starting commit and the tickets that were implemented.
 
