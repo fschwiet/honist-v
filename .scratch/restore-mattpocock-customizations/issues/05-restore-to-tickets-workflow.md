@@ -6,7 +6,7 @@
 
 **Blocked by:** 02: Remove the replaced Matt Pocock setup skill
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] Tickets use the customized local location and dependency-oriented numbering.
 - [x] The workflow publishes the ticket breakdown without a user quiz or peer-review stage.

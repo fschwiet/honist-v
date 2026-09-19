@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] The replaced setup skill is removed from the Matt Pocock skill bundle.
 - [x] The separately maintained streamlined setup skill is not modified or removed.

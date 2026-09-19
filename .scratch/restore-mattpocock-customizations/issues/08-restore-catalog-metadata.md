@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] `grill-with-docs` has its customized display metadata.
 - [x] The productivity catalog includes the customized skill index entry.

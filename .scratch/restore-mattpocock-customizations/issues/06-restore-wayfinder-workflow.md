@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] Research findings are committed and linked back to their decision tickets.
 - [x] Mapping sessions commit their changes before stopping.

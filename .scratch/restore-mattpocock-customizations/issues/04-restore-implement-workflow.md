@@ -6,7 +6,7 @@
 
 **Blocked by:** 01: Restore code-review-of-changeset; 02: Remove the replaced Matt Pocock setup skill
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] Tickets are delegated sequentially, one unblocked ticket at a time.
 - [x] Agents verify their work, commit it, and leave tickets ready for review rather than resolved.

@@ -6,7 +6,7 @@
 
 **Blocked by:** 01: Restore code-review-of-changeset
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] All code-review guidance names the restored skill.
 - [x] Local ticket guidance uses the customized ticket location.

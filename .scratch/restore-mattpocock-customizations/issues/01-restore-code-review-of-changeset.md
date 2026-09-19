@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] The renamed `code-review-of-changeset` skill is available and the former `code-review` skill is no longer the active name.
 - [x] The skill is limited to source-code changesets and explicitly declines documentation-only diffs.

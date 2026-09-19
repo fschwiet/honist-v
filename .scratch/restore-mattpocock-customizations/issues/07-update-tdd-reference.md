@@ -6,7 +6,7 @@
 
 **Blocked by:** 01: Restore code-review-of-changeset
 
-**Status:** ready-for-review
+**Status:** resolved
 
 - [x] TDD guidance names `code-review-of-changeset`.
 - [x] No unrelated TDD behavior changes.
