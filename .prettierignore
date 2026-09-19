@@ -3,3 +3,4 @@ pnpm-lock.yaml
 .claude/
 docs/honist-v/
 plugin/skills/oh-my-openagent
+plugin/skills/mattpocock-skills
