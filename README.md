@@ -4,7 +4,6 @@ A Claude Code, Codex and Pi plugin/package,
 
 - imported from [Matt Pocock's Skills](https://www.github.com/mattpocock/skills):
   - the engineering and productivity skills
-  - modified to use `prompt-a-peer-low`, `prompt-a-peer-medium`, or `prompt-a-peer-high` for reviews in grilling-session, to-spec, and to-tickets.
 - imported from [Jesse Vincent's Superpowers](https://github.com/obra/superpowers):
   - skills: brainstorming, writing-plans, executing-plans, test-driven-development
   - removed insistance on not working in main
