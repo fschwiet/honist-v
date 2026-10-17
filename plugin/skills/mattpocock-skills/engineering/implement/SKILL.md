@@ -16,4 +16,8 @@ When the full verification pipeline passes use /code-review-of-changeset to revi
 
 Repeat the full verification pipeline once issues indicated by /code-review-of-changeset are addressed.
 
-When the /code-review-of-changeset issues are addressed and the full verification pipeline passes update the ticket's `**Status:**` field to `resolved` and commit the changes to the current branch.
+When the /code-review-of-changeset issues are addressed and the full verification pipeline passes update the ticket's `**Status:**` field to `resolved`.
+
+Then check every ticket in the feature's `issues/` directory (the directory containing the implemented tickets, or the one belonging to the spec if a spec was given). If all of them are `resolved` and a `spec.md` exists in the feature directory, update the spec's `Status:` field to `resolved` as well. If some tickets are not resolved, or there is no `spec.md`, make no spec changes.
+
+Commit the changes to the current branch.
