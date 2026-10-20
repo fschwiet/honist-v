@@ -3,7 +3,6 @@
   "description": "A personal curation of agentic tools.",
   "version": "0.0.46",
   "skills": [
-    "./skills/obra-superpowers/",
     "./skills/mattpocock-skills/engineering/",
     "./skills/mattpocock-skills/productivity/",
     "./skills/oh-my-openagent/"

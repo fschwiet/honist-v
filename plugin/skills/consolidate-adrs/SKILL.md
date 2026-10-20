@@ -23,7 +23,7 @@ Review every ADR for:
 - decisions that another ADR corrects, updates, or subsumes;
 - duplicated rationale or current-state descriptions with more than one home;
 - historical narration that does not justify the current design; and
-- links or other references to material under `docs/superpowers/`, `docs/honist-v/`, or `docs/mattpocock/`.
+- links or other references to material under `docs/honist-v/` or `docs/mattpocock/`.
 
 For a corrected, updated, or subsumed decision, choose one authoritative ADR to carry the consolidated current decision and its useful rationale. Update that ADR and remove stale or duplicate claims from the others. Retain a brief account of an earlier choice only when it explains the current design. When an ADR has no useful current decision or rationale left, propose deleting it.
 
@@ -54,7 +54,7 @@ Apply exactly the approved set. Re-read the complete resulting ADR archive and v
 - content changed by the approved set agrees with the current repository and applicable domain language;
 - no contradictory or stale account addressed by the approved set remains;
 - each retained historical detail justifies the current design;
-- the ADRs are self-contained and contain no references to `docs/superpowers/`, `docs/honist-v/`, or `docs/mattpocock/`; and
+- the ADRs are self-contained and contain no references to `docs/honist-v/` or `docs/mattpocock/`; and
 - the files still follow the `domain-modeling` ADR format.
 
 Run relevant repository checks. Review the diff, stage only the approved ADR changes, and commit them without including unrelated worktree changes. Use one coherent consolidation commit unless the approved change set or repository conventions require separate commits. If the approved set is empty, report that outcome without creating an empty commit.

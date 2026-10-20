@@ -1,3 +1,0 @@
-interface:
-  display_name: 'Prompt A Peer High'
-  short_description: 'Prompt a peer with a frontier model'

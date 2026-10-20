@@ -8,7 +8,6 @@ disable-model-invocation: true
 
 Retire every file under these repository-relative directories:
 
-- `docs/superpowers/`
 - `docs/honist-v/`
 - `docs/matt-pocock/`
 
@@ -18,7 +17,7 @@ Refuse to continue if there are changes to tracked files in either the index or 
 
 ## Inventory the retirement set
 
-1. Enumerate every file currently beneath the three retirement directories, including untracked and hidden files. Sort the repository-relative paths and show the user the complete retirement set before reading or editing anything else: one path per line, with no summarized entries. This list is the retirement manifest.
+1. Enumerate every file currently beneath the two retirement directories, including untracked and hidden files. Sort the repository-relative paths and show the user the complete retirement set before reading or editing anything else: one path per line, with no summarized entries. This list is the retirement manifest.
 2. If any files in the retirement manifest are untracked warn the user and ask for their confirmation before proceeding.
 3. If the manifest is empty, report that there is nothing to retire and stop without committing.
 
@@ -94,7 +93,7 @@ Verify that:
 - each changed or created ADR follows the domain-modeling format and agrees with current code and surviving documentation;
 - each changed `CONTEXT.md` follows the domain-modeling format and contains domain language rather than implementation detail;
 - no surviving reference depends on a retired manifest file, and every retained retirement-path reference is a current maintenance reference;
-- the three retirement directories contain no files; and
+- the two retirement directories contain no files; and
 - the diff contains only approved durable-context changes and manifest deletions.
 
 Run relevant repository checks. Stage only the approved changes and deletions, then create one coherent retirement commit using the repository's commit conventions. If the approved set contains no durable-context changes, create the deletion-only commit. Report any deleted untracked files separately because they cannot appear in the commit.

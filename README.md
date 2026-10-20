@@ -4,13 +4,6 @@ A Claude Code, Codex and Pi plugin/package,
 
 - imported from [Matt Pocock's Skills](https://www.github.com/mattpocock/skills):
   - the engineering and productivity skills
-- imported from [Jesse Vincent's Superpowers](https://github.com/obra/superpowers):
-  - skills: brainstorming, writing-plans, executing-plans, test-driven-development
-  - removed insistance on not working in main
-  - added second review by pi
-  - skills are user invoked only
-- original skills:
-  - `prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high`: shared skills that let other skills offload a prompt to a peer agent (via pi)
 - original hooks:
   - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
   - a `PreToolUse` hook (Claude only) blocks PowerShell here-string syntax (`@'...'@`) in the Bash tool — see below
@@ -18,12 +11,6 @@ A Claude Code, Codex and Pi plugin/package,
 ## Shared skills
 
 The shared skills live in `skills/` and are loaded by both agents. Claude auto-discovers `skills/`; the `.codex-plugin` manifest lists both `skills/` and `skills-codex/` (Codex loads only the paths its manifest names). The per-host `skills-codex/` tree contains `sniff-coding-standards`.
-
-## Prompt a peer
-
-`prompt-a-peer-low`, `prompt-a-peer-medium`, and `prompt-a-peer-high` share one implementation across Claude and Codex hosts. Every host shells out to the `pi` CLI using the `openai-codex` provider, with the level selecting `gpt-5.6-luna`, `gpt-5.6-terra`, or `gpt-5.6-sol`, respectively. This diverts peer-review cost away from the host agent and provides a fresh context window.
-
-The skills remain model-invocable so plan, spec, and review flows can reach them by name.
 
 ## Bash here-string guard
 
