@@ -7,6 +7,7 @@ A Claude Code, Codex and Pi plugin/package,
 - original hooks:
   - a session start hook instruct Claude not to use the AskUserQuestion tool when it will clip its options
   - a `PreToolUse` hook (Claude only) blocks PowerShell here-string syntax (`@'...'@`) in the Bash tool — see below
+- a `prompt.context` mod (Claude only) that strips your account email from the context, from [claude-code-no-email](https://github.com/AlexErrant/claude-code-no-email/)
 
 ## Shared skills
 
